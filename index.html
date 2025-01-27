@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <title>Stewflandic Permission System</title>
+</head> 
+<body>
+    <main>
+        
+        <div class="content-container">
+            <!-- Section for logged-out view -->
+            <section id="logged-out-view">
+                <div class="auth-page_container">
+                    <div class="form-container">
+                        <!-- Toggle buttons for sign in and sign up forms -->
+                        
+                        <!-- Sign in form -->
+                        <div id="signin-form" class="login-form-container">
+                            <div class="login-form">
+                                <h2>Login</h2>
+                                <div class="input-group">
+                                    <input type="email" id="signin-email-input" name="email" placeholder="Email" required>
+                                    <div id="email-error-message" class="error-msg"></div>
+                                </div>
+                                <div class="input-group">
+                                    <input type="password" id="signin-password-input" name="password" placeholder="Password" required>
+                                    <div id="password-error-message" class="error-msg"></div>
+                                </div>
+                                <div id="sign-in-btn" class="login-btn">Sign In</div>
+                               
+                                
+                            </div>
+                        </div>
+                        <!-- Sign up form -->
+                        
+                </div>
+            </section>
+
+            
+            <!-- Section for logged-in view -->
+            <section id="logged-in-view">
+                
+                <div class="chat-container">
+                    
+              
+                    <div class="chat-messages"></div>
+              
+                    <div class="chat-input-form">
+                      <input type="text" class="chat-input" required placeholder="Type here..."/>
+                      <button class="button send-button">Send</button>
+                    </div>
+                    
+                  </div>
+                  <div class="top-section">
+                    <h2 class="greeting">Welcome to The Stewflandic Permission System! <br>You are logged in as <span id="user-email"></span>.</h2>
+                    <button id="logout-button" class="logout-btn">Logout</button>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- Script to toggle between signin and signup forms -->
+    <!-- <script>
+        const signinToggleBtn = document.getElementById("signin-toggle-btn");
+        const signupToggleBtn = document.getElementById("signup-toggle-btn");
+        const signInFormView = document.getElementById("signin-form");
+        const signUpFormView = document.getElementById("signup-form");
+
+        signinToggleBtn.addEventListener('click', () => {
+            signInFormView.style.display = 'block';
+            signUpFormView.style.display = 'none';
+            signinToggleBtn.style.backgroundColor = 'blue';
+            signinToggleBtn.style.color = 'white';
+            signupToggleBtn.style.backgroundColor = 'lightgrey';
+            signupToggleBtn.style.color = 'black';
+        });
+
+        signupToggleBtn.addEventListener('click', () => {
+            signInFormView.style.display = 'none';
+            signUpFormView.style.display = 'block';
+            signinToggleBtn.style.backgroundColor = 'lightgrey';
+            signinToggleBtn.style.color = 'black';
+            signupToggleBtn.style.backgroundColor = 'blue';
+            signupToggleBtn.style.color = 'white';
+        });
+    </script> -->      
+
+    <!-- Import external script -->
+    <script type="module" src="main.js"></script>
+</body>
+</html> 
