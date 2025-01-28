@@ -290,7 +290,8 @@ onValue(user3ref, () =>{
     //console.log(snap)
     if (snap.sender != messageSender) {
       //,
-             
+
+             //ear
     createChatMessageElement(snap)
     }
 
