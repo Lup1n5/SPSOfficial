@@ -264,6 +264,7 @@ onValue(user1ref, () =>{
     //console.log(snap)
     if (snap.sender != messageSender) {
       //,
+
              
     createChatMessageElement(snap)
     }
@@ -277,6 +278,7 @@ onValue(user2ref, () =>{
     //console.log(snap)
     if (snap.sender != messageSender) {
       //,
+
              
     createChatMessageElement(snap)
     }
@@ -305,6 +307,7 @@ onValue(user4ref, () =>{
     if (snap.sender != messageSender) {
       //,
              
+             
     createChatMessageElement(snap)
     }
 
@@ -317,6 +320,7 @@ onValue(user5ref, () =>{
     //console.log(snap)
     if (snap.sender != messageSender) {
       //,
+
              
     createChatMessageElement(snap)
     }
@@ -330,6 +334,7 @@ onValue(user6ref, () =>{
     //console.log(snap)
     if (snap.sender != messageSender) {
       //,
+
              
     createChatMessageElement(snap)
     }
@@ -343,6 +348,7 @@ onValue(user7ref, () =>{
     //console.log(snap)
     if (snap.sender != messageSender) {
       //,
+
              
     createChatMessageElement(snap)
     }
@@ -356,6 +362,7 @@ onValue(user8ref, () =>{
     //console.log(snap)
     if (snap.sender != messageSender) {
       //,
+
              
     createChatMessageElement(snap)
     }
