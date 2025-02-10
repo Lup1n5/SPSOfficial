@@ -130,6 +130,7 @@ chatMessages.scrollTop = chatMessages.scrollHeight
   }
 }
 sendBtn.addEventListener('click', () => {
+  if (chatInput.value !="-tablist") {
   let timestamp = new Date().toLocaleString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true })
   let message = {
     sender: messageSender,
@@ -146,6 +147,21 @@ sendBtn.addEventListener('click', () => {
   createChatMessageElement(message);  
   chatInput.value = ""
   }
+} else {
+  const refage = ref(db, `users`)
+  get(refage).then((snapshot) =>{
+    Object.values(snapshot.val()).forEach((snap) =>{
+      let timestamp = new Date().toLocaleString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true })
+      let message = {
+        sender: messageSender,
+        text: `${snap} is online.`,
+        timestamp,
+      }
+      createChatMessageElement(message);  
+    })
+  })
+  chatInput.value = ""
+}
 })
 chatInput.addEventListener("keypress", function(event) {
   if (event.key === "Enter") {
@@ -163,7 +179,7 @@ get(allmessages).then((snapshot) =>{
     let snap = snapshot.val()
     if (snap.sender != messageSender) {
     createChatMessageElement(snap)
-    }
+    } 
 
   })
 })
