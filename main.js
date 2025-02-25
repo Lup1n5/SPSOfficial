@@ -52,18 +52,9 @@ function logout() {
 }
   
 }
-var inactivityTime = function () {
-  var time;
-  window.onload = resetTimer();
-  document.onmousemove = resetTimer();
-  document.onkeydown = resetTimer();
-  
-  function resetTimer() {
-      clearTimeout(time);
-      time = setTimeout(logout(), 300000)
-      // 1000 milliseconds = 1 second
-  }
-};
+window.addEventListener("blur", () => {
+   logout();
+});
 onAuthStateChanged(auth, (user) => {
     if (user) {
       uid = user.uid;
