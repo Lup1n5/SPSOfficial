@@ -54,9 +54,9 @@ function logout() {
 }
 var inactivityTime = function () {
   var time;
-  window.onload = resetTimer;
-  document.onmousemove = resetTimer;
-  document.onkeydown = resetTimer;
+  window.onload = resetTimer();
+  document.onmousemove = resetTimer();
+  document.onkeydown = resetTimer();
   
   function resetTimer() {
       clearTimeout(time);
@@ -85,6 +85,7 @@ onAuthStateChanged(auth, (user) => {
   const messageRef = ref(db,`messages/${uid}`)
   set(messageRef,message)
       set(refage, email)
+         
     } else {
       // User is signed out
       loggedInView.style.display = 'none' 
