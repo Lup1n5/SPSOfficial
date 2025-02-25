@@ -52,7 +52,7 @@ function logout() {
 }
   
 }
-window.addEventListener("blur", () => {
+Window.addEventListener("blur", () => {
    logout();
 });
 onAuthStateChanged(auth, (user) => {
