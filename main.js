@@ -52,8 +52,10 @@ function logout() {
 }
   
 }
-Window.addEventListener("blur", () => {
-   logout();
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === 'hidden') {
+    logout();
+  }
 });
 onAuthStateChanged(auth, (user) => {
     if (user) {
