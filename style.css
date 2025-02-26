@@ -354,7 +354,9 @@ h1 {
 .gray-bg {
   background-color: #3d5365;
 }
-
+.yello-bg {
+  background-color: #cce019;
+}
 .chat-input-form {
   display: flex;
   align-items: center;

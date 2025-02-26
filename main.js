@@ -40,6 +40,14 @@ var messageSender = ''
 var email = ""
 let uid = '';
 function logout() {
+  let timestamp = new Date().toLocaleString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true })
+  let message = {
+    sender: "Server",
+    text: `${messageSender} has disconnected.`,
+    timestamp,
+  }
+  const messageRef = ref(db,`messages/${uid}`)
+  set(messageRef,message)
   const refage = ref(db, `users/${uid}`)
       set(refage, null)
   for (var i = 0; i<chatMessages.childElementCount; i++) { 
@@ -115,7 +123,7 @@ const createChatMessageElement = (message) => {
   let time1 = timestamp.replace(/[:APM]/g, ""); 
   let time2 = message.timestamp.replace(/[:APM]/g, ""); 
   if (Math.abs(Number(time2)-Number(time1)) <2) {
-newMessage.innerHTML = `<div class="message ${message.sender === messageSender ? 'blue-bg' : 'gray-bg'}">
+newMessage.innerHTML = `<div class="message ${message.sender === messageSender ? 'blue-bg' : message.text.includes('@'+messageSender.replace("@providenceday.org",'')) == true ? 'yello-bg' : 'gray-bg'}">
   <div class="message-sender">${message.timestamp}:          ${message.sender}</div>
   <div class="message-text">${message.text}</div>
   </div>`;
@@ -142,20 +150,38 @@ sendBtn.addEventListener('click', () => {
   chatInput.value = ""
   }
 } else {
+  var retern = false;
   const refage = ref(db, `users`)
   get(refage).then((snapshot) =>{
     Object.values(snapshot.val()).forEach((snap) =>{
       let timestamp = new Date().toLocaleString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true })
       let message = {
-        sender: messageSender,
+        sender: 'TABLIST',
         text: `${snap} is online.`,
         timestamp,
       }
+      if (snap !=messageSender) {
       createChatMessageElement(message);  
+      retern = true;
+      }
     })
+    if (retern == false) {
+      let timestamp = new Date().toLocaleString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true })
+      let message = {
+        sender: 'TABLIST',
+        text: `Nobody is online.`,
+        timestamp,
+      }
+      
+      createChatMessageElement(message);  
+      
+      
+     }
   })
+   
   chatInput.value = ""
 }
+
 })
 chatInput.addEventListener("keypress", function(event) {
   if (event.key === "Enter") {
@@ -180,22 +206,3 @@ get(allmessages).then((snapshot) =>{
 
   });
 })
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-//haha 69
