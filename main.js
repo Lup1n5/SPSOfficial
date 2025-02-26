@@ -1,5 +1,5 @@
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.1.3/firebase-app.js';
-import { getDatabase, ref, set, onValue, get, DataSnapshot } from 'https://www.gstatic.com/firebasejs/9.1.3/firebase-database.js';
+import { getDatabase, ref, set, onValue, get } from 'https://www.gstatic.com/firebasejs/9.1.3/firebase-database.js';
 import { getAuth, 
          createUserWithEmailAndPassword, 
          signInWithEmailAndPassword, 
@@ -39,6 +39,7 @@ const sendBtn = document.querySelector(".send-button")
 var messageSender = ''
 var email = ""
 let uid = '';
+let isMuted = 0;
 function logout() {
   let timestamp = new Date().toLocaleString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true })
   let message = {
@@ -86,7 +87,7 @@ onAuthStateChanged(auth, (user) => {
   const messageRef = ref(db,`messages/${uid}`)
   set(messageRef,message)
       set(refage, email)
-         
+      
     } else {
       // User is signed out
       loggedInView.style.display = 'none' 
@@ -141,11 +142,13 @@ sendBtn.addEventListener('click', () => {
   }
   if (message.text) {
   const messageRef = ref(db,`messages/${uid}`)
+  if (isMuted !=1){
   set(messageRef,message)
   const counterRef = ref(db,'messageCount')
   get(counterRef).then((DataSnapshot) => {
     set(counterRef,DataSnapshot.val()+1)
   } )
+}
   createChatMessageElement(message);  
   chatInput.value = ""
   }
@@ -189,6 +192,38 @@ chatInput.addEventListener("keypress", function(event) {
     sendBtn.click();
   }
 });
+const pingRef = ref(db, `pings/${uid}`)
+onValue(pingRef,(snapshot) =>{checkPings(snapshot)})
+function checkPings(snapshot) {
+  const snap = snapshot.val()
+  switch(snap) {
+    case 'pinging':
+      set(pingRef, 'recieved')
+      break;
+    case 'kick':
+      set(pingsRef, 'kicked')
+      logout();
+      break;
+    case 'ban' || 'banned':
+      set(pingRef, 'banned')
+      logout();
+      break;
+    case 'mute' || 'muted': 
+      set(pingRef, 'muted')
+      isMuted = 1;
+      break;
+    case 'unmute' || 'unmuted':
+      set(pingsRef, 'unmuted')
+      isMuted = 0;
+      break;
+    case 'refresh':
+      set(pingRef, 'updated')
+      logout()
+      //add refresh page code here
+      break;
+
+  }
+}
 const allmessages = ref(db, "messages")
 get(allmessages).then((snapshot) =>{
   Object.keys(snapshot.val()).forEach((poop) => {
