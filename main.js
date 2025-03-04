@@ -20,7 +20,6 @@ const firebaseConfig = {
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const auth = getAuth();
-const provider = new GoogleAuthProvider();
 const db = getDatabase(app);
 
 const loggedInView = document.getElementById('logged-in-view')
@@ -28,8 +27,6 @@ const loggedOutView = document.getElementById('logged-out-view')
 const userEmail = document.getElementById('user-email')
 const emailSignInForm = document.getElementById('signin-email-input')
 const passwordSignInForm = document.getElementById('signin-password-input')
-const emailSignUpForm = document.getElementById('signup-email-input')
-const passwordSignUpForm = document.getElementById('signup-password-input')
 const loginBtn = document.getElementById('sign-in-btn')
 const logoutBtn = document.getElementById('logout-button')
 const chatMessages = document.querySelector('.chat-messages')
@@ -60,11 +57,7 @@ function logout() {
     location.reload()
   
 }
-document.addEventListener("visibilitychange", () => {
-  if (document.visibilityState === 'hidden') {
-    logout();
-  }
-});
+
 onAuthStateChanged(auth, (user) => {
     if (user) {
       uid = user.uid;
@@ -95,7 +88,7 @@ onAuthStateChanged(auth, (user) => {
       const pingPong = ref(db, `pings`)
 onValue(pingPong,(snapshot) =>{
   const snapp = snapshot.val()
-  if (snapp[uid] =='pinging') {
+  if (snapp[uid] =='pinging' && document.visibilityState === 'hidden') {
   const pingRef = ref(db, `pings/${uid}`)
     set(pingRef, 'recieved')
 }})
