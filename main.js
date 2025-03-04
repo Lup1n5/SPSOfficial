@@ -62,7 +62,7 @@ function logout() {
 }
 document.addEventListener("visibilitychange", () => {
   if (document.visibilityState === 'hidden') {
-    //logout();
+    logout();
   }
 });
 onAuthStateChanged(auth, (user) => {
