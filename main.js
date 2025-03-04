@@ -49,16 +49,15 @@ function logout() {
   }
   const messageRef = ref(db,`messages/${uid}`)
   set(messageRef,message)
-  const refage = ref(db, `users/${uid}`)
-      set(refage, null)
   for (var i = 0; i<chatMessages.childElementCount; i++) { 
     chatMessages.removeChild(chatMessages.firstChild); 
+  }
     signOut(auth).then(() => {
       // Sign-out successful.
     }).catch((error) => {
       // An error happened.
     });
-}
+
   
 }
 document.addEventListener("visibilitychange", () => {
@@ -77,7 +76,9 @@ onAuthStateChanged(auth, (user) => {
       passwordSignInForm.value = ""
       loggedOutView.style.display = 'none'
       messageSender = email
-      const refage = ref(db, `users/${uid}`)
+      const refage = ref(db, `pings/${uid}`)
+      const refag = ref(db, `users/${uid}`)
+      set(refag, email)
       let timestamp = new Date().toLocaleString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true })
   let message = {
     sender: "Server",
@@ -86,7 +87,11 @@ onAuthStateChanged(auth, (user) => {
   }
   const messageRef = ref(db,`messages/${uid}`)
   set(messageRef,message)
-      set(refage, email)
+      get(refage).then((snapshot) =>{
+        if (!snapshot.val()) {
+          set(refage, 'x')
+        }
+      })
       
     } else {
       // User is signed out
@@ -133,7 +138,7 @@ chatMessages.scrollTop = chatMessages.scrollHeight
   }
 }
 sendBtn.addEventListener('click', () => {
-  if (chatInput.value !="-tablist") {
+  if (chatInput.value !="/tab") {
   let timestamp = new Date().toLocaleString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true })
   let message = {
     sender: messageSender,
@@ -154,32 +159,42 @@ sendBtn.addEventListener('click', () => {
   }
 } else {
   var retern = false;
-  const refage = ref(db, `users`)
+  const refage = ref(db, `pings`)
+
   get(refage).then((snapshot) =>{
-    Object.values(snapshot.val()).forEach((snap) =>{
-      let timestamp = new Date().toLocaleString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true })
-      let message = {
-        sender: 'TABLIST',
-        text: `${snap} is online.`,
-        timestamp,
-      }
-      if (snap !=messageSender) {
-      createChatMessageElement(message);  
-      retern = true;
-      }
+    Object.keys(snapshot.val()).forEach((poop) =>{
+      const refage = ref(db, `pings/${poop}`)
+      set(refage, 'pinging')
     })
-    if (retern == false) {
-      let timestamp = new Date().toLocaleString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true })
-      let message = {
-        sender: 'TABLIST',
-        text: `Nobody is online.`,
-        timestamp,
-      }
+    setTimeout(function(){
+        
+    }, 1000);
+
+
+    // Object.values(snapshot.val()).forEach((snap) =>{
+    //   let timestamp = new Date().toLocaleString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true })
+    //   let message = {
+    //     sender: 'TABLIST',
+    //     text: `${snap} is online.`,
+    //     timestamp,
+    //   }
+    //   if (snap !=messageSender) {
+    //   createChatMessageElement(message);  
+    //   retern = true;
+    //   }
+    // })
+    // if (retern == false) {
+    //   let timestamp = new Date().toLocaleString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true })
+    //   let message = {
+    //     sender: 'TABLIST',
+    //     text: `Nobody is online.`,
+    //     timestamp,
+    //   }
       
-      createChatMessageElement(message);  
+    //   createChatMessageElement(message);  
       
       
-     }
+    //  }
   })
    
   chatInput.value = ""
@@ -196,32 +211,8 @@ const pingRef = ref(db, `pings/${uid}`)
 onValue(pingRef,(snapshot) =>{checkPings(snapshot)})
 function checkPings(snapshot) {
   const snap = snapshot.val()
-  switch(snap) {
-    case 'pinging':
+  if (snap ='pinging') {
       set(pingRef, 'recieved')
-      break;
-    case 'kick':
-      set(pingsRef, 'kicked')
-      logout();
-      break;
-    case 'ban' || 'banned':
-      set(pingRef, 'banned')
-      logout();
-      break;
-    case 'mute' || 'muted': 
-      set(pingRef, 'muted')
-      isMuted = 1;
-      break;
-    case 'unmute' || 'unmuted':
-      set(pingsRef, 'unmuted')
-      isMuted = 0;
-      break;
-    case 'refresh':
-      set(pingRef, 'updated')
-      logout()
-      //add refresh page code here
-      break;
-
   }
 }
 const allmessages = ref(db, "messages")
