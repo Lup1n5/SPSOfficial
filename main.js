@@ -62,7 +62,7 @@ function logout() {
 }
 document.addEventListener("visibilitychange", () => {
   if (document.visibilityState === 'hidden') {
-    logout();
+    //logout();
   }
 });
 onAuthStateChanged(auth, (user) => {
@@ -158,16 +158,49 @@ sendBtn.addEventListener('click', () => {
   chatInput.value = ""
   }
 } else {
-  var retern = false;
+
   const refage = ref(db, `pings`)
 
   get(refage).then((snapshot) =>{
     Object.keys(snapshot.val()).forEach((poop) =>{
-      const refage = ref(db, `pings/${poop}`)
-      set(refage, 'pinging')
+      const refrence = ref(db, `pings/${poop}`)
+      set(refrence, 'pinging')
     })
     setTimeout(function(){
-        
+      const refage = ref(db, `pings`)
+      let output = [];
+        get(refage).then((snapshot)=>{
+         const ids = Object.keys(snapshot.val())
+         const vals = Object.values(snapshot.val())
+          for(var i = 0; i<ids.length; i++) {
+            if(vals[i] == 'recieved') {
+              output.push(ids[i])
+            }
+          }
+          if(output.length ==1) {
+            let timestamp = new Date().toLocaleString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true })
+          let message = {
+            sender: 'TABLIST',
+            text: `Nobody is online.`,
+            timestamp,
+          }
+          createChatMessageElement(message);  
+          }
+      output.forEach((snap)=>{
+        const refage = ref(db, `users/${snap}`)
+        get(refage).then((snapshot)=>{
+          let timestamp = new Date().toLocaleString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true })
+      let message = {
+        sender: 'TABLIST',
+        text: `${snapshot.val()} is online.`,
+        timestamp,
+      }
+      if (snapshot.val() !=messageSender) {
+      createChatMessageElement(message);  
+      }
+        })
+      })
+        })
     }, 1000);
 
 
@@ -207,14 +240,15 @@ chatInput.addEventListener("keypress", function(event) {
     sendBtn.click();
   }
 });
-const pingRef = ref(db, `pings/${uid}`)
-onValue(pingRef,(snapshot) =>{checkPings(snapshot)})
-function checkPings(snapshot) {
-  const snap = snapshot.val()
-  if (snap ='pinging') {
-      set(pingRef, 'recieved')
-  }
-}
+const pingPong = ref(db, `pings`)
+
+onValue(pingPong,(snapshot) =>{
+  const snapp = snapshot.val()
+  if (snapp[uid] =='pinging') {
+  const pingRef = ref(db, `pings/${uid}`)
+    set(pingRef, 'recieved')
+}})
+
 const allmessages = ref(db, "messages")
 get(allmessages).then((snapshot) =>{
   Object.keys(snapshot.val()).forEach((poop) => {
