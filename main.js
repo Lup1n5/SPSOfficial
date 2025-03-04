@@ -57,7 +57,7 @@ function logout() {
     }).catch((error) => {
       // An error happened.
     });
-
+    location.reload()
   
 }
 document.addEventListener("visibilitychange", () => {
@@ -92,7 +92,31 @@ onAuthStateChanged(auth, (user) => {
           set(refage, 'x')
         }
       })
-      
+      const pingPong = ref(db, `pings`)
+onValue(pingPong,(snapshot) =>{
+  const snapp = snapshot.val()
+  if (snapp[uid] =='pinging') {
+  const pingRef = ref(db, `pings/${uid}`)
+    set(pingRef, 'recieved')
+}})
+
+const allmessages = ref(db, "messages")
+get(allmessages).then((snapshot) =>{
+  Object.keys(snapshot.val()).forEach((poop) => {
+    const userRef = ref(db, `messages/${poop}/text`)
+    onValue(userRef, () =>{
+  const reef = ref(db, `messages/${poop}`)
+  get(reef).then((snapshot) =>{
+    let snap = snapshot.val()
+    if (snap.sender != messageSender) {
+    createChatMessageElement(snap)
+    } 
+
+  })
+})
+
+  });
+})
     } else {
       // User is signed out
       loggedInView.style.display = 'none' 
@@ -202,32 +226,6 @@ sendBtn.addEventListener('click', () => {
       })
         })
     }, 1000);
-
-
-    // Object.values(snapshot.val()).forEach((snap) =>{
-    //   let timestamp = new Date().toLocaleString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true })
-    //   let message = {
-    //     sender: 'TABLIST',
-    //     text: `${snap} is online.`,
-    //     timestamp,
-    //   }
-    //   if (snap !=messageSender) {
-    //   createChatMessageElement(message);  
-    //   retern = true;
-    //   }
-    // })
-    // if (retern == false) {
-    //   let timestamp = new Date().toLocaleString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true })
-    //   let message = {
-    //     sender: 'TABLIST',
-    //     text: `Nobody is online.`,
-    //     timestamp,
-    //   }
-      
-    //   createChatMessageElement(message);  
-      
-      
-    //  }
   })
    
   chatInput.value = ""
@@ -240,29 +238,3 @@ chatInput.addEventListener("keypress", function(event) {
     sendBtn.click();
   }
 });
-const pingPong = ref(db, `pings`)
-
-onValue(pingPong,(snapshot) =>{
-  const snapp = snapshot.val()
-  if (snapp[uid] =='pinging') {
-  const pingRef = ref(db, `pings/${uid}`)
-    set(pingRef, 'recieved')
-}})
-
-const allmessages = ref(db, "messages")
-get(allmessages).then((snapshot) =>{
-  Object.keys(snapshot.val()).forEach((poop) => {
-    const userRef = ref(db, `messages/${poop}/text`)
-    onValue(userRef, () =>{
-  const reef = ref(db, `messages/${poop}`)
-  get(reef).then((snapshot) =>{
-    let snap = snapshot.val()
-    if (snap.sender != messageSender) {
-    createChatMessageElement(snap)
-    } 
-
-  })
-})
-
-  });
-})
