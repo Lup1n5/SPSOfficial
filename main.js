@@ -85,12 +85,11 @@ onAuthStateChanged(auth, (user) => {
           set(refage, 'x')
         }
       })
-      const pingPong = ref(db, `pings`)
+      const pingPong = ref(db, `pings/${uid}`)
 onValue(pingPong,(snapshot) =>{
   const snapp = snapshot.val()
-  if (snapp[uid] =='pinging' && document.visibilityState != 'hidden') {
-  const pingRef = ref(db, `pings/${uid}`)
-    set(pingRef, 'recieved')
+  if (snapp =='pinging' && document.visibilityState !== 'hidden') {
+    set(pingPong, 'recieved')
 }})
 
 const allmessages = ref(db, "messages")
