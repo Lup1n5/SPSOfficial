@@ -54,7 +54,7 @@ function logout() {
     }).catch((error) => {
       // An error happened.
     });
-    location.reload()
+    location.reload(true)
   
 }
 
