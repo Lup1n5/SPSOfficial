@@ -71,7 +71,12 @@ onAuthStateChanged(auth, (user) => {
       messageSender = email
       const refage = ref(db, `pings/${uid}`)
       const refag = ref(db, `users/${uid}`)
-      set(refag, email)
+      get(refag).then((snapshot) => {
+        set(refag, email)
+        if (snapshot.val() == 'refresh') {
+          logout();
+        } 
+      })
       let timestamp = new Date().toLocaleString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true })
   let message = {
     sender: "Server",
