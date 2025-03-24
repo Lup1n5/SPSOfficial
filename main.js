@@ -91,7 +91,7 @@ onValue(pingPong,(snapshot) =>{
   if (snapp =='pinging' && document.visibilityState !== 'hidden') {
     set(pingPong, 'recieved')
 }})
-
+let initialized = false;
 const allmessages = ref(db, "messages")
 get(allmessages).then((snapshot) =>{
   Object.keys(snapshot.val()).forEach((poop) => {
@@ -100,14 +100,14 @@ get(allmessages).then((snapshot) =>{
   const reef = ref(db, `messages/${poop}`)
   get(reef).then((snapshot) =>{
     let snap = snapshot.val()
-    if (snap.sender != messageSender) {
+    if (snap.sender != messageSender && initialized) {
     createChatMessageElement(snap)
     } 
 
   })
 })
-
   });
+  initialized = true;
 })
     } else {
       // User is signed out
