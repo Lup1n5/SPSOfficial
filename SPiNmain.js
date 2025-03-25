@@ -13,11 +13,6 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
-const usernameDisplay = document.getElementById('user-name')
-const loggedInView = document.getElementById('logged-in-view')
-const loggedOutView = document.getElementById('logged-out-view')
-const usernameSignInForm = document.getElementById('signin-email-input')
-const loginBtn = document.getElementById('sign-in-btn')
 const logoutBtn = document.getElementById('logout-button')
 const chatMessages = document.querySelector('.chat-messages')
 const chatInput = document.querySelector('.chat-input')
@@ -49,9 +44,6 @@ function logout() {
     const usersRef = ref(db,`users/${user}`)
     set(usersRef, null)
   }, 100);
-    loggedInView.style.display = 'none' 
-    loggedOutView.style.display = 'block'
-  location.reload(true);
 }
 function checkAdmPings() {
   const adminPingsRef = ref(db,`admpings/${user}`)
@@ -154,25 +146,12 @@ function login(username) {
     initialized = true;
   }
   , 100);
-
-  loggedOutView.style.display = 'none';
-  loggedInView.style.display = 'block';
 }
 
-
-
-loginBtn.addEventListener('click', () => {    
-  login('"' + usernameSignInForm.value.replaceAll('"', '') + '"')
-  usernameSignInForm.value = ""
-  })
-usernameSignInForm.addEventListener("keypress", function(event) {
-  if (event.key === "Enter") {
-    event.preventDefault();
-    loginBtn.click();
-  }
+logoutBtn.addEventListener('click', () => {
+  logout();
+  window.location.href = 'index.html'; // Redirect to index.html
 });
-
-logoutBtn.addEventListener('click', () => {logout()})
 // Utility function to generate a unique ID for each message
 const generateMessageId = () => `msg-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
@@ -273,21 +252,6 @@ sendBtn.addEventListener('click', () => {
     chatInput.value = "";
   }
 });
-
-// Update the listener for incoming messages to handle unique IDs
-onValue(userCountRef, () => {
-  // ...existing code to remove and re-add listeners...
-  get(allmessages).then((snapshot) => {
-    if (snapshot.exists()) {
-      Object.values(snapshot.val()).forEach((message) => {
-        if (message.id) {
-          createChatMessageElement(message); // Use the unique ID to avoid duplicates
-        }
-      });
-    }
-  });
-});
-
 chatInput.addEventListener("keypress", function(event) {
   if (event.key === "Enter") {
     event.preventDefault();
