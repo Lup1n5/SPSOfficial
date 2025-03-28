@@ -12,9 +12,10 @@ const firebaseConfig = {
     messagingSenderId: "423644329992",
     appId: "1:423644329992:web:9c14f1c959b8db636639bd"
 };
-const auth = getAuth();
+
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
+const auth = getAuth();
 const db = getDatabase(app);
 
 const logoutBtn = document.getElementById('logout-button')
