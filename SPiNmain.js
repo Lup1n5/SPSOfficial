@@ -1,5 +1,9 @@
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.1.3/firebase-app.js';
 import { getDatabase, ref, set, onValue, get, off } from 'https://www.gstatic.com/firebasejs/9.1.3/firebase-database.js';
+import { getAuth, 
+  signInWithEmailAndPassword, 
+  onAuthStateChanged,
+  signOut } from 'https://www.gstatic.com/firebasejs/9.1.3/firebase-auth.js';
 const firebaseConfig = {
   apiKey: "AIzaSyD68PbyrHLGNYf9Kg_Xb_XKiKegz-Kov7k",
     authDomain: "spin-a3d5a.firebaseapp.com",
@@ -8,7 +12,7 @@ const firebaseConfig = {
     messagingSenderId: "423644329992",
     appId: "1:423644329992:web:9c14f1c959b8db636639bd"
 };
-
+const auth = getAuth();
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
@@ -17,13 +21,10 @@ const logoutBtn = document.getElementById('logout-button')
 const chatMessages = document.querySelector('.chat-messages')
 const chatInput = document.querySelector('.chat-input')
 const sendBtn = document.querySelector(".send-button")
-let user = '';
-let blocker = 1;
+let username= '';
 const userCountRef = ref(db, 'userCount'); // Move userCountRef to global scope
 const allmessages = ref(db, "messages"); // Move allmessages to global scope
-
-function logout() {
-  let timestamp = new Date().toLocaleString('en-US', { year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric', hour12: true });
+/*let timestamp = new Date().toLocaleString('en-US', { year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric', hour12: true });
   let message = {
     sender: "Server",
     text: `${user} has disconnected.`,
@@ -31,45 +32,18 @@ function logout() {
     id: generateMessageId(), // Add unique ID
   }
   const messageRef = ref(db,`messages/${user}`)
-  set(messageRef,message)
-  while (chatMessages.childElementCount !=0) { 
-    chatMessages.removeChild(chatMessages.firstElementChild); 
-    chatMessages.remove(chatMessages.firstElementChild)
-  }
-  setTimeout(function(){
-    const messageRef = ref(db,`messages/${user}`)
-    set(messageRef, null)
-    const pingsRef = ref(db,`pings/${user}`)
-    set(pingsRef, null)
-    const usersRef = ref(db,`users/${user}`)
-    set(usersRef, null)
-  }, 100);
+  set(messageRef,message)*/
+const email = sessionStorage.getItem('email');
+const password = sessionStorage.getItem('password');
+signInWithEmailAndPassword(auth, email, password).then((userCredential) => {login(userCredential);}).catch((error) => {
+  const errorCode = error.code;
+  const errorMessage = error.message;
+  console.log(errorCode, errorMessage);
+  alert("Error: " + errorMessage);
 }
-function checkAdmPings() {
-  const adminPingsRef = ref(db,`admpings/${user}`)
-  get(adminPingsRef).then((snapshot) => {
-    switch (snapshot.val()) {
-      case 'mute'||'muted':
-      set(adminPingsRef, 'muted')
-      return true;
-      case 'unmute':
-      set(adminPingsRef, 'unmuted')
-      return false;
-      case 'kick':
-      set(adminPingsRef, 'recieved')
-      logout();
-      break;
-      case 'ban'||'banned':
-      set(adminPingsRef, 'banned')
-      logout();
-      break;
-      default:
-      return false;
-    }
-  })
-}
-function login(username) {
-  user = username;
+);
+function login(user) {
+  
   usernameDisplay.innerText = user;
   let timestamp = new Date().toLocaleString('en-US', { year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric', hour12: true });
   let message = {
@@ -90,10 +64,7 @@ function login(username) {
         break;
     }
   });
-  const adminPingsRef = ref(db, `admpings/${user}`);
-  onValue(adminPingsRef, () => {
-    checkAdmPings();
-  });
+
   const usersRef = ref(db, `users/${user}`);
   set(usersRef, user);
   get(userCountRef).then((DataSnapshot) => {
@@ -127,7 +98,7 @@ function login(username) {
                     let snap = messageSnapshot.val();
                     const sanitizedId = `msg-${CSS.escape(poop)}`; // Sanitize the ID
                     if (
-                      snap.sender != user &&
+                      snap.sender != username&&
                       snap.text != `${user} has connected.` &&
                       !document.querySelector(`[data-message-id="${sanitizedId}"]`) // Avoid duplicate DOM elements
                     ) {
@@ -164,7 +135,7 @@ const createChatMessageElement = (message) => {
 
   const newMessage = document.createElement("div");
   newMessage.setAttribute("data-message-id", message.id); // Add unique identifier to the DOM element
-    newMessage.innerHTML = `<div class="message ${message.sender === user ? 'blue-bg' : message.text.replace('"', '').includes('@' + user.replaceAll('"','')) ? 'yello-bg' : 'gray-bg'}">
+    newMessage.innerHTML = `<div class="message ${message.sender === username? 'blue-bg' : message.text.replace('"', '').includes('@' + user.replaceAll('"','')) ? 'yello-bg' : 'gray-bg'}">
       <div class="message-sender">${message.timestamp}: ${message.sender.replaceAll('"', '')}</div>
       <div class="message-text">${message.text}</div>
     </div>`;

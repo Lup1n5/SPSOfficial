@@ -22,6 +22,8 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth();
 const db = getDatabase(app);
 
+const spinBtn = document.getElementById('spin-button')
+const hiddenToggle = document.getElementById('hiddenToggle')
 const loggedInView = document.getElementById('logged-in-view')
 const loggedOutView = document.getElementById('logged-out-view')
 const userEmail = document.getElementById('user-email')
@@ -65,6 +67,8 @@ onAuthStateChanged(auth, (user) => {
       //console.log(email)
       loggedInView.style.display = 'block'
       userEmail.innerText = email
+      sessionStorage.setItem('username', emailSignInForm.value);
+      sessionStorage.setItem('password', passwordSignInForm.value);
       emailSignInForm.value = ""
       passwordSignInForm.value = ""
       loggedOutView.style.display = 'none'
@@ -235,3 +239,13 @@ chatInput.addEventListener("keypress", function(event) {
     sendBtn.click();
   }
 });
+const hiddenForm = document.querySelector('.hidden-form');
+
+// Add a submit event listener to the form
+hiddenForm.addEventListener('submit', (event) => {
+  event.preventDefault();
+});
+spinBtn.addEventListener('click', () => {
+  sessionStorage.setItem('ishidden', hiddenToggle.checked);
+  window.location.href = 'SPiN.html';
+})

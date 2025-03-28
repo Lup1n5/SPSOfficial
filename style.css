@@ -192,7 +192,7 @@ h1 {
 .greeting {
   text-align: center;
   
-  font-size: 1.5rem;
+  font-size: 1.2rem;
 }
 
 /* Message Container */
@@ -295,6 +295,23 @@ h1 {
   align-items: center;
   width: 100%;
   padding: 0px 0;
+}
+.hidden-form {
+  display:grid;
+
+}
+.hidden-box {
+  display: inline;
+}
+#spin-button {
+  padding: 10px 20px;
+  font-size: 16px;
+  color: white;
+  background-color: #ff7b00;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s;
 }
 .chat-container {
   background: #15202b;
