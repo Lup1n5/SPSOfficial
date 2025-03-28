@@ -43,7 +43,10 @@ signInWithEmailAndPassword(auth, email, password).then((userCredential) => {logi
 }
 );
 function login(user) {
-  
+  const nameFind = ref(db, `usernames/${user.user.uid}`);
+  get(nameFind).then((snapshot) => {
+    username = snapshot.val();
+  });
   usernameDisplay.innerText = user;
   let timestamp = new Date().toLocaleString('en-US', { year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric', hour12: true });
   let message = {
