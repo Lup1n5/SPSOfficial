@@ -18,36 +18,30 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth();
 const db = getDatabase(app);
 
+const usernameDisplay = document.getElementById('user-name')
 const logoutBtn = document.getElementById('logout-button')
 const chatMessages = document.querySelector('.chat-messages')
 const chatInput = document.querySelector('.chat-input')
 const sendBtn = document.querySelector(".send-button")
-let username= '';
+let user= '';
 const userCountRef = ref(db, 'userCount'); // Move userCountRef to global scope
 const allmessages = ref(db, "messages"); // Move allmessages to global scope
-/*let timestamp = new Date().toLocaleString('en-US', { year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric', hour12: true });
-  let message = {
-    sender: "Server",
-    text: `${user} has disconnected.`,
-    timestamp,
-    id: generateMessageId(), // Add unique ID
-  }
-  const messageRef = ref(db,`messages/${user}`)
-  set(messageRef,message)*/
 const email = sessionStorage.getItem('email');
 const password = sessionStorage.getItem('password');
-signInWithEmailAndPassword(auth, email, password).then((userCredential) => {login(userCredential);}).catch((error) => {
+signInWithEmailAndPassword(auth, email, password).then((userCredential) => {
+  const nameFind = ref(db, `usernames/${userCredential.user.uid}`);
+  get(nameFind).then((snapshot) => {
+    user = snapshot.val();
+    login();
+  });
+}).catch((error) => {
   const errorCode = error.code;
   const errorMessage = error.message;
   console.log(errorCode, errorMessage);
   alert("Error: " + errorMessage);
 }
 );
-function login(user) {
-  const nameFind = ref(db, `usernames/${user.user.uid}`);
-  get(nameFind).then((snapshot) => {
-    username = snapshot.val();
-  });
+function login() {
   usernameDisplay.innerText = user;
   let timestamp = new Date().toLocaleString('en-US', { year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric', hour12: true });
   let message = {
@@ -102,7 +96,7 @@ function login(user) {
                     let snap = messageSnapshot.val();
                     const sanitizedId = `msg-${CSS.escape(poop)}`; // Sanitize the ID
                     if (
-                      snap.sender != username&&
+                      snap.sender != user&&
                       snap.text != `${user} has connected.` &&
                       !document.querySelector(`[data-message-id="${sanitizedId}"]`) // Avoid duplicate DOM elements
                     ) {
@@ -124,7 +118,17 @@ function login(user) {
 }
 
 logoutBtn.addEventListener('click', () => {
-  logout();
+  //ADD AN IFF THINGY
+  let timestamp = new Date().toLocaleString('en-US', { year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric', hour12: true });
+  let message = {
+    sender: "Server",
+    text: `${user} has disconnected.`,
+    timestamp,
+    id: generateMessageId(), // Add unique ID
+  }
+  const messageRef = ref(db,`messages/${user}`)
+  set(messageRef,message)
+  signOut(auth)
   window.location.href = 'index.html'; // Redirect to index.html
 });
 // Utility function to generate a unique ID for each message
@@ -139,7 +143,7 @@ const createChatMessageElement = (message) => {
 
   const newMessage = document.createElement("div");
   newMessage.setAttribute("data-message-id", message.id); // Add unique identifier to the DOM element
-    newMessage.innerHTML = `<div class="message ${message.sender === username? 'blue-bg' : message.text.replace('"', '').includes('@' + user.replaceAll('"','')) ? 'yello-bg' : 'gray-bg'}">
+    newMessage.innerHTML = `<div class="message ${message.sender === user? 'blue-bg' : message.text.replace('"', '').includes('@' + user.replaceAll('"','')) ? 'yello-bg' : 'gray-bg'}">
       <div class="message-sender">${message.timestamp}: ${message.sender.replaceAll('"', '')}</div>
       <div class="message-text">${message.text}</div>
     </div>`;
@@ -159,13 +163,13 @@ sendBtn.addEventListener('click', () => {
     };
     if (message.text) {
       const messageRef = ref(db, `messages/${user}`);
-      if (!checkAdmPings()) {
+
         set(messageRef, message);
         const counterRef = ref(db, 'messageCount');
         get(counterRef).then((DataSnapshot) => {
           set(counterRef, DataSnapshot.val() + 1);
         });
-      }
+      
       createChatMessageElement(message);  
       chatInput.value = "";
     }

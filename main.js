@@ -67,7 +67,7 @@ onAuthStateChanged(auth, (user) => {
       //console.log(email)
       loggedInView.style.display = 'block'
       userEmail.innerText = email
-      sessionStorage.setItem('username', emailSignInForm.value);
+      sessionStorage.setItem('email', emailSignInForm.value);
       sessionStorage.setItem('password', passwordSignInForm.value);
       emailSignInForm.value = ""
       passwordSignInForm.value = ""
