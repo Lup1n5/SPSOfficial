@@ -28,6 +28,8 @@ const userCountRef = ref(db, 'userCount'); // Move userCountRef to global scope
 const allmessages = ref(db, "messages"); // Move allmessages to global scope
 const email = sessionStorage.getItem('email');
 const password = sessionStorage.getItem('password');
+let isHidden = sessionStorage.getItem('ishidden');
+
 signInWithEmailAndPassword(auth, email, password).then((userCredential) => {
   const nameFind = ref(db, `usernames/${userCredential.user.uid}`);
   get(nameFind).then((snapshot) => {
@@ -44,6 +46,15 @@ signInWithEmailAndPassword(auth, email, password).then((userCredential) => {
 function login() {
   usernameDisplay.innerText = user;
   let timestamp = new Date().toLocaleString('en-US', { year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric', hour12: true });
+  if (isHidden == 'true') {
+    let message = {
+      sender: "Server",
+      text: `Connected as ${user} (Hidden)`,
+      timestamp,
+      id: generateMessageId(), // Add unique ID
+    };
+    createChatMessageElement(message, user);
+  } else {
   let message = {
     sender: "Server",
     text: `${user} has connected.`,
@@ -53,12 +64,15 @@ function login() {
   const messageRef = ref(db, `messages/${user}`);
   set(messageRef, message);
   createChatMessageElement(message, user);
+  } 
+  
   const pingsRef = ref(db, `pings/${user}`);
   set(pingsRef, 'idle');
   onValue(pingsRef, (snapshot) => {
     switch (snapshot.val()) {
       case 'pinging':
-        set(pingsRef, 'recieved');
+        if (isHidden != 'true') {
+      set(pingsRef, 'recieved');}
         break;
     }
   });
@@ -118,7 +132,7 @@ function login() {
 }
 
 logoutBtn.addEventListener('click', () => {
-  //ADD AN IFF THINGY
+  if (isHidden == false) {
   let timestamp = new Date().toLocaleString('en-US', { year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric', hour12: true });
   let message = {
     sender: "Server",
@@ -128,6 +142,7 @@ logoutBtn.addEventListener('click', () => {
   }
   const messageRef = ref(db,`messages/${user}`)
   set(messageRef,message)
+}
   signOut(auth)
   window.location.href = 'index.html'; // Redirect to index.html
 });
@@ -153,7 +168,7 @@ const createChatMessageElement = (message) => {
 
 // Modify the send button click handler to include a unique ID for each message
 sendBtn.addEventListener('click', () => {
-  if (chatInput.value !== "/tab") {
+  if (chatInput.value[0] !== '/') {
     let timestamp = new Date().toLocaleString('en-US', { year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric', hour12: true });
     let message = {
       sender: user,
@@ -174,7 +189,10 @@ sendBtn.addEventListener('click', () => {
       chatInput.value = "";
     }
   } else {
-    const refage = ref(db, `pings`);
+    let command = chatInput.value.replace('/','')
+    switch (command) {
+      case 'tab':
+        const refage = ref(db, `pings`);
 
     get(refage).then((snapshot) => {
       Object.keys(snapshot.val()).forEach((poop) => {
@@ -228,8 +246,10 @@ sendBtn.addEventListener('click', () => {
       }, 1000);
     });
 
-    chatInput.value = "";
+    break;
   }
+  chatInput.value = "";
+}
 });
 chatInput.addEventListener("keypress", function(event) {
   if (event.key === "Enter") {
