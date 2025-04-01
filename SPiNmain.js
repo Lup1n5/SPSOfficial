@@ -189,7 +189,11 @@ sendBtn.addEventListener('click', () => {
       chatInput.value = "";
     }
   } else {
-    let command = chatInput.value.replace('/','')
+    let commandParts = chatInput.value.replace('/', '').split(' '); // Split command into parts
+    if (commandParts.length < 2) return; // Return if there are not exactly 2 parts
+    let command = commandParts[0];
+    let argument = commandParts[1];
+
     switch (command) {
       case 'tab':
         const refage = ref(db, `pings`);
@@ -247,6 +251,7 @@ sendBtn.addEventListener('click', () => {
     });
 
     break;
+    //case 'mute'
   }
   chatInput.value = "";
 }
