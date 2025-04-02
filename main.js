@@ -1,5 +1,5 @@
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.1.3/firebase-app.js';
-import { getDatabase, ref, set, onValue, get } from 'https://www.gstatic.com/firebasejs/9.1.3/firebase-database.js';
+import { getDatabase, ref, set, onValue, get, off } from 'https://www.gstatic.com/firebasejs/9.1.3/firebase-database.js';
 import { getAuth, 
          createUserWithEmailAndPassword, 
          signInWithEmailAndPassword, 
@@ -60,34 +60,27 @@ function logout() {
     location.reload(true)
   
 }
-function checkAdmPings() {
-  const adminPingsRef = ref(db,`admpings/${uid}`)
-  get(adminPingsRef).then((snapshot) => {
-    switch (snapshot.val()) {
-      case 'mute'||'muted':
-      set(adminPingsRef, 'muted')
+const checkAdmPings = async () => { // Ensure proper case handling
+  const adminPingsRef = ref(db, `admpings/${uid}`);
+  const snapshot = await get(adminPingsRef);
+  switch (snapshot.val()) {
+    case 'mute':
+    case 'muted':
+      await set(adminPingsRef, 'muted'); // Ensure this is awaited
       return true;
-      case 'unmute':
-      set(adminPingsRef, 'unmuted')
+    case 'unmute':
+    case 'unmuted':
+      await set(adminPingsRef, 'unmuted'); // Ensure this is awaited
       return false;
-      case 'kick':
-      set(adminPingsRef, 'kicked')
-      logout();
-      break;
-      case 'ban'||'banned':
-      set(adminPingsRef, 'banned')
-      logout();
-      break;
-      default:
+    default:
       return false;
-    }
-  })
-}
-onAuthStateChanged(auth, (user) => {
+  }
+};
+onAuthStateChanged(auth, async (user) => { // Await checkAdmPings here
     if (user) {
       uid = user.uid;
-      email = user.email
-      checkAdmPings()
+      email = user.email;
+      await checkAdmPings(); // Ensure this is awaited
       //console.log(email)
       loggedInView.style.display = 'block'
       userEmail.innerText = email
@@ -108,6 +101,27 @@ onAuthStateChanged(auth, (user) => {
       const userRef = ref(db, `users`);
       get(userRef).then((snapshot) => {
         userList = snapshot.val();
+      })
+      const adminPingsRef = ref(db,`admpings/${uid}`)
+      onValue(adminPingsRef, (snapshot) => {
+        switch (snapshot.val()) {
+          case 'mute'||'muted':
+          set(adminPingsRef, 'muted')
+          break
+          case 'unmute':
+          set(adminPingsRef, 'unmuted')
+          break
+          case 'kick':
+          set(adminPingsRef, 'kicked')
+          logout();
+          break;
+          case 'ban'||'banned':
+          set(adminPingsRef, 'banned')
+          logout();
+          break;
+          default:
+          return false;
+        }
       })
       let timestamp = new Date().toLocaleString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true })
   let message = {
@@ -202,169 +216,143 @@ const checkForPerms = async () => {
 };
 
 sendBtn.addEventListener('click', async () => {
-  let isAdmin = await checkForPerms(); // Await the result of checkForPerms()
+  let isAdmin = await checkForPerms();
   if (isAdmin && chatInput.value[0] == '/' && chatInput.value != "/tab") {
-    let timestamp = new Date().toLocaleString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true })
-      let message45 = { 
-        sender: "Server",
-        text: `You ran somin.`,
-        timestamp,
-      };
-      createChatMessageElement(message45);
-    let commandParts = chatInput.value.replace('/', '').split(' '); // Split command into parts
-    let target = '';
-      for (var i = 0; i<Object.values(userList).length; i++) {
-        if (Object.values(userList)[i] == commandParts[1]) {
-          target = Object.keys(userList)[i];
-        }
-      }
-        switch (commandParts[0]) {
-        case 'mute':
-          if (!target) {
-            alert("Please specify a user to mute.");
-            return;
-          }
-          const muteRef = ref(db, `admpings/${uid}`);
-          set(muteRef, target);
-          const watcher = onValue(muteRef, (snapshot) => {  
-            if (snapshot.val() === 'muted') {
-              let timestamp = new Date().toLocaleString('en-US', { year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric', hour12: true });
-              let message = {
-                sender: "Server",
-                text: `${target} has been muted.`,
-                timestamp,
-                
-              };
-              createChatMessageElement(message);
-              off(muteRef, watcher); // Remove the listener
-            }
-          });
-          break;
-          case 'unmute':
-            // let target = commandParts[1];
-          if (!target) {
-            alert("Please specify a user to unmute.");
-            return;
-          }
-          set(muteRef, target);
-          const watcher2 = onValue(muteRef, (snapshot) => {  
-            if (snapshot.val() === 'unmuted') {
-              let timestamp = new Date().toLocaleString('en-US', { year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric', hour12: true });
-              let message = {
-                sender: "Server",
-                text: `${target} has been unmuted.`,
-                timestamp,
-                
-              };
-              createChatMessageElement(message);
-              off(muteRef, watcher2); // Remove the listener
-            }
-          });
-          break;
-          case kick:
+    let timestamp = new Date().toLocaleString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true });
+    let message45 = { 
+      sender: "Server",
+      text: `You ran somin.`,
+      timestamp,
+    };
+    createChatMessageElement(message45);
 
-            if (!target) {
-              alert("Please specify a user to kick.");
-              return;
-            }
-            const kickRef = ref(db, `admpings/${uid}`);
-            set(kickRef, target);
-            let timestamp = new Date().toLocaleString('en-US', { year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric', hour12: true });
-            let message = { 
+    let commandParts = chatInput.value.replace('/', '').split(' '); // Split command into parts
+    let target = null;
+    if (commandParts[1]) {
+    if (!commandParts[1].includes('@providenceday.org')) {
+      console.log(commandParts[1]+' before')
+      commandParts[1] = commandParts[1] + '@providenceday.org';
+      console.log(commandParts[1]+' after')
+    }}
+    // Fix target assignment logic
+    Object.entries(userList).forEach(([key, value]) => {
+      console.log(key)
+        console.log(value)
+      if (value === commandParts[1]) {
+        target = key;
+      }
+    });
+
+    if (!target && ['mute', 'unmute', 'kick', 'sendAs'].includes(commandParts[0])) {
+      alert("Please specify a valid user.");
+      return;
+    }
+
+    switch (commandParts[0]) {
+      case 'mute':
+        const muteRef = ref(db, `admpings/${target}`);
+        set(muteRef, 'mute');
+        onValue(muteRef, (snapshot) => {
+          if (snapshot.val() === 'muted') {
+            let message = {
               sender: "Server",
-              text: `Kick request sent to ${target}...`,
-              timestamp,
-              
+              text: `${commandParts[1]} has been muted.`,
+              timestamp: new Date().toLocaleString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true }),
             };
             createChatMessageElement(message);
-            const watcher3 = onValue(kickRef, (snapshot) => {  
-              if (snapshot.val() === 'kicked') {
-                let timestamp = new Date().toLocaleString('en-US', { year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric', hour12: true });
-                let message = {
-                  sender: "Server",
-                  text: `${target} has been sucessfully kicked.`,
-                  timestamp,
-                  
-                };
-                createChatMessageElement(message);
-                off(kickRef, watcher3); // Remove the listener
-              }
-            });
-            break;
-          case 'hide':
-            const messageRef = ref(db, `messages/${uid}`);
-            let timestamp2 = new Date().toLocaleString('en-US', { year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric', hour12: true });
-            let message2 = { 
-              sender: "Server",
-              text: `${uid} has disconnected.`,
-              timestamp2,
-              
-            };
-            set(messageRef, message2);
-            isHidden = true;
-            break;
-          case 'unhide':
-            let timestamp3 = new Date().toLocaleString('en-US', { year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric', hour12: true });
-            let message3 = { 
-              sender: "Server",
-              text: `${uid} has connected.`,
-              timestamp3,
-              
-            };
-            set(messageRef, message3);
-            isHidden = false;
-            break;
-          case 'sendAs':
+            off(muteRef); // Remove the listener
+          }
+        });
+        break;
 
-            let messageText = commandParts[2]; // Join the rest of the command as the message text
-            if (!target || !messageText) {
-              alert("Please specify a user and a message to send.");
-              return;
-            }
-            const sendAsRef = ref(db, `messages/${uid}`);
-            let timestamp4 = new Date().toLocaleString('en-US', { year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric', hour12: true });
-            let message4 = { 
-              sender: target,
-              text: messageText,
-              timestamp4,
-              
-            };
-            set(sendAsRef, message4);
-            createChatMessageElement(message4);
-            break;
-    
-          case 'help':
-            let helpMessage = {
+      case 'unmute':
+        const unmuteRef = ref(db, `admpings/${target}`);
+        set(unmuteRef, 'unmute');
+        onValue(unmuteRef, (snapshot) => {
+          if (snapshot.val() === 'unmuted') {
+            let message = {
               sender: "Server",
-              text: `Available commands: /tab, /mute [user], /unmute [user], /kick [user], /hide, /unhide, /sendAs [user] [message], /help`,
-              timestamp,
-              
+              text: `${commandParts[1]} has been unmuted.`,
+              timestamp: new Date().toLocaleString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true }),
             };
-            createChatMessageElement(helpMessage);
-            break;
-      }
-      chatInput.value = ""
+            createChatMessageElement(message);
+            off(unmuteRef); // Remove the listener
+          }
+        });
+        break;
+
+      case 'kick':
+        const kickRef = ref(db, `admpings/${target}`);
+        set(kickRef, 'kick');
+        let kickMessage = {
+          sender: "Server",
+          text: `Kick request sent to ${commandParts[1]}...`,
+          timestamp: new Date().toLocaleString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true }),
+        };
+        createChatMessageElement(kickMessage);
+        onValue(kickRef, (snapshot) => {
+          if (snapshot.val() === 'kicked') {
+            let message = {
+              sender: "Server",
+              text: `${commandParts[1]} has been successfully kicked.`,
+              timestamp: new Date().toLocaleString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true }),
+            };
+            createChatMessageElement(message);
+            off(kickRef); // Remove the listener
+          }
+        });
+        break;
+
+      case 'sendAs':
+        const sendAsRef = ref(db, `messages/${uid}`);
+        let messageText = commandParts.slice(2).join(' '); // Join the rest of the command as the message text
+        if (!messageText) {
+          alert("Please specify a message to send.");
+          return;
+        }
+        let sendAsMessage = {
+          sender: commandParts[1],
+          text: messageText,
+          timestamp: new Date().toLocaleString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true }),
+        };
+        set(sendAsRef, sendAsMessage);
+        createChatMessageElement(sendAsMessage);
+        break;
+
+      case 'help':
+        let helpMessage = {
+          sender: "Server",
+          text: `Available commands: /tab, /mute [user], /unmute [user], /kick [user], /sendAs [user] [message], /help`,
+          timestamp: new Date().toLocaleString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true }),
+        };
+        createChatMessageElement(helpMessage);
+        break;
+
+      default:
+        alert("Unknown command.");
+        break;
     }
-  if (chatInput.value !="/tab") {
-  let timestamp = new Date().toLocaleString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true })
-  let message = {
-    sender: messageSender,
-    text: chatInput.value,
-    timestamp,
+    chatInput.value = "";
   }
-  if (message.text) {
-  const messageRef = ref(db,`messages/${uid}`)
-  if (!checkAdmPings()) {
-  set(messageRef,message)
-  const counterRef = ref(db,'messageCount')
-  get(counterRef).then((DataSnapshot) => {
-    set(counterRef,DataSnapshot.val()+1)
-  } )
-}
-  createChatMessageElement(message);  
-  chatInput.value = ""
-  }
-} else {
+  if (chatInput.value != "/tab") {
+    let timestamp = new Date().toLocaleString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true });
+    let message = {
+      sender: messageSender,
+      text: chatInput.value,
+      timestamp,
+    };
+    if (message.text) {
+      const messageRef = ref(db, `messages/${uid}`);
+      if (!(await checkAdmPings())) { // Await checkAdmPings here
+        await set(messageRef, message); // Ensure this is awaited
+        const counterRef = ref(db, 'messageCount');
+        const DataSnapshot = await get(counterRef); // Await get here
+        await set(counterRef, DataSnapshot.val() + 1); // Ensure this is awaited
+      }
+      createChatMessageElement(message);
+      chatInput.value = "";
+    }
+  } else {
 
   const refage = ref(db, `pings`)
 
