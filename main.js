@@ -187,7 +187,7 @@ chatMessages.scrollTop = chatMessages.scrollHeight
   }
 }
 function checkForPerms() {
-  const refage = ref(db, `AdminMan/${uid}`)
+  const refage = ref(db, `AdminMan`)
   get(refage).then((snapshot) => {
     if (snapshot.val() == uid) {
       return true;
