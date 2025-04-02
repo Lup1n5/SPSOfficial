@@ -39,6 +39,7 @@ var messageSender = ''
 var email = ""
 let uid = '';
 let isMuted = 0;
+let userList = [];
 function logout() {
   let timestamp = new Date().toLocaleString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true })
   let message = {
@@ -103,6 +104,10 @@ onAuthStateChanged(auth, (user) => {
         if (snapshot.val() == 'refresh') {
           logout();
         } 
+      })
+      const userRef = ref(db, `users`);
+      get(userRef).then((snapshot) => {
+        userList = snapshot.val();
       })
       let timestamp = new Date().toLocaleString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true })
   let message = {
@@ -186,28 +191,33 @@ chatMessages.appendChild(newMessage);
 chatMessages.scrollTop = chatMessages.scrollHeight
   }
 }
-function checkForPerms() {
-  const refage = ref(db, `AdminMan`)
-  get(refage).then((snapshot) => {
-    if (snapshot.val() == uid) {
-      return true;
-    } else {
-      return false;
-    }
+const checkForPerms = async () => {
+  const refage = ref(db, `AdminMan`);
+  const snapshot = await get(refage);
+  if (snapshot.val() == uid) {
+    return true;
+  } else {
+    return false;
+  }
+};
 
-  })
-}
-sendBtn.addEventListener('click', () => {
-  if (checkForPerms()) {
+sendBtn.addEventListener('click', async () => {
+  let isAdmin = await checkForPerms(); // Await the result of checkForPerms()
+  if (isAdmin && chatInput.value[0] == '/' && chatInput.value != "/tab") {
+    let timestamp = new Date().toLocaleString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true })
+      let message45 = { 
+        sender: "Server",
+        text: `You ran somin.`,
+        timestamp,
+      };
+      createChatMessageElement(message45);
     let commandParts = chatInput.value.replace('/', '').split(' '); // Split command into parts
     let target = '';
-    let userRef = ref(db, `users`);
-    get(userRef).then((snapshot) => { 
-      for (var i = 0; i<Object.values(snapshot.val).length; i++) {
-        if (Object.values(snapshot.val)[i] == commandParts[1]) {
-          target = Object.keys(snapshot.val())[i];
+      for (var i = 0; i<Object.values(userList).length; i++) {
+        if (Object.values(userList)[i] == commandParts[1]) {
+          target = Object.keys(userList)[i];
         }
-      }})
+      }
         switch (commandParts[0]) {
         case 'mute':
           if (!target) {
@@ -333,6 +343,7 @@ sendBtn.addEventListener('click', () => {
             createChatMessageElement(helpMessage);
             break;
       }
+      chatInput.value = ""
     }
   if (chatInput.value !="/tab") {
   let timestamp = new Date().toLocaleString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true })
