@@ -59,11 +59,34 @@ function logout() {
     location.reload(true)
   
 }
-
+function checkAdmPings() {
+  const adminPingsRef = ref(db,`admpings/${uid}`)
+  get(adminPingsRef).then((snapshot) => {
+    switch (snapshot.val()) {
+      case 'mute'||'muted':
+      set(adminPingsRef, 'muted')
+      return true;
+      case 'unmute':
+      set(adminPingsRef, 'unmuted')
+      return false;
+      case 'kick':
+      set(adminPingsRef, 'kicked')
+      logout();
+      break;
+      case 'ban'||'banned':
+      set(adminPingsRef, 'banned')
+      logout();
+      break;
+      default:
+      return false;
+    }
+  })
+}
 onAuthStateChanged(auth, (user) => {
     if (user) {
       uid = user.uid;
       email = user.email
+      checkAdmPings()
       //console.log(email)
       loggedInView.style.display = 'block'
       userEmail.innerText = email
@@ -118,6 +141,7 @@ get(allmessages).then((snapshot) =>{
   });
   initialized = true;
 })
+
     } else {
       // User is signed out
       loggedInView.style.display = 'none' 
@@ -172,7 +196,7 @@ sendBtn.addEventListener('click', () => {
   }
   if (message.text) {
   const messageRef = ref(db,`messages/${uid}`)
-  if (isMuted !=1){
+  if (!checkAdmPings()) {
   set(messageRef,message)
   const counterRef = ref(db,'messageCount')
   get(counterRef).then((DataSnapshot) => {
