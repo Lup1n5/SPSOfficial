@@ -84,8 +84,10 @@ onAuthStateChanged(auth, async (user) => { // Await checkAdmPings here
       //console.log(email)
       loggedInView.style.display = 'block'
       userEmail.innerText = email
+      if (sessionStorage.getItem('email') != email) {
       sessionStorage.setItem('email', emailSignInForm.value.replace(' ', ''));
       sessionStorage.setItem('password', passwordSignInForm.value);
+      }
       emailSignInForm.value = ""
       passwordSignInForm.value = ""
       loggedOutView.style.display = 'none'
