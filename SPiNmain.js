@@ -69,12 +69,10 @@ function login() {
   const pingsRef = ref(db, `pings/${user}`);
   set(pingsRef, 'idle');
   onValue(pingsRef, (snapshot) => {
-    switch (snapshot.val()) {
-      case 'pinging':
-        if (isHidden != 'true') {
+
+        if (isHidden != true) {
       set(pingsRef, 'recieved');}
-        break;
-    }
+    
   });
 
   const usersRef = ref(db, `users/${user}`);
@@ -189,6 +187,7 @@ sendBtn.addEventListener('click', () => {
       chatInput.value = "";
     }
   } else {
+    const messageRef = ref(db, `messages/${user}`);
     let commandParts = chatInput.value.replace('/', '').split(' '); // Split command into parts
 
     switch (commandParts[0]) {
@@ -212,7 +211,7 @@ sendBtn.addEventListener('click', () => {
               output.push(ids[i]);
             }
           }
-          if (output.length === 0) {
+          if (output.length < 2) {
             let timestamp = new Date().toLocaleString('en-US', { year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric', hour12: true });
             let message = {
               sender: 'TABLIST',
@@ -248,57 +247,60 @@ sendBtn.addEventListener('click', () => {
     });
 
     break;
-    case 'mute':
-      let target = commandParts[1];
-      if (!target) {
-        alert("Please specify a user to mute.");
-        return;
-      }
-      const muteRef = ref(db, `admpings/${user}`);
-      set(muteRef, target);
-      const watcher = onValue(muteRef, (snapshot) => {  
-        if (snapshot.val() === 'muted') {
-          let timestamp = new Date().toLocaleString('en-US', { year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric', hour12: true });
-          let message = {
-            sender: "Server",
-            text: `${target} has been muted.`,
-            timestamp,
-            id: generateMessageId(), // Add unique ID
-          };
-          createChatMessageElement(message);
-          off(muteRef, watcher); // Remove the listener
+
+      case 'mute':
+        let target = commandParts[1]; // Ensure target is scoped here
+        if (!target) {
+          alert("Please specify a user to mute.");
+          return;
         }
-      });
-      break;
+        const muteRef = ref(db, `admpings/${target}`);
+        set(muteRef, 'mute');
+        const watcher = onValue(muteRef, (snapshot) => {  
+          if (snapshot.val() === 'muted') {
+            let timestamp = new Date().toLocaleString('en-US', { year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric', hour12: true });
+            let message = {
+              sender: "Server",
+              text: `${target} has been muted.`,
+              timestamp,
+              id: generateMessageId(), // Add unique ID
+            };
+            createChatMessageElement(message);
+            off(muteRef, watcher); // Remove the listener
+          }
+        });
+        break;
+
       case 'unmute':
-        // let target = commandParts[1];
-      if (!target) {
-        alert("Please specify a user to unmute.");
-        return;
-      }
-      set(muteRef, target);
-      const watcher2 = onValue(muteRef, (snapshot) => {  
-        if (snapshot.val() === 'unmuted') {
-          let timestamp = new Date().toLocaleString('en-US', { year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric', hour12: true });
-          let message = {
-            sender: "Server",
-            text: `${target} has been unmuted.`,
-            timestamp,
-            id: generateMessageId(), // Add unique ID
-          };
-          createChatMessageElement(message);
-          off(muteRef, watcher2); // Remove the listener
+        target = commandParts[1]; // Reuse target variable
+        if (!target) {
+          alert("Please specify a user to unmute.");
+          return;
         }
-      });
-      break;
-      case kick:
-        let target2 = commandParts[1];
+        set(muteRef, 'unmute');
+        const watcher2 = onValue(muteRef, (snapshot) => {  
+          if (snapshot.val() === 'unmuted') {
+            let timestamp = new Date().toLocaleString('en-US', { year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric', hour12: true });
+            let message = {
+              sender: "Server",
+              text: `${target} has been unmuted.`,
+              timestamp,
+              id: generateMessageId(), // Add unique ID
+            };
+            createChatMessageElement(message);
+            off(muteRef, watcher2); // Remove the listener
+          }
+        });
+        break;
+
+      case 'kick':
+        let target2 = commandParts[1]; // Ensure target2 is scoped here
         if (!target2) {
           alert("Please specify a user to kick.");
           return;
         }
-        const kickRef = ref(db, `admpings/${user}`);
-        set(kickRef, target2);
+        const kickRef = ref(db, `admpings/${target2}`);
+        set(kickRef, 'kick');
         let timestamp = new Date().toLocaleString('en-US', { year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric', hour12: true });
         let message = { 
           sender: "Server",
@@ -312,7 +314,7 @@ sendBtn.addEventListener('click', () => {
             let timestamp = new Date().toLocaleString('en-US', { year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric', hour12: true });
             let message = {
               sender: "Server",
-              text: `${target2} has been sucessfully kicked.`,
+              text: `${target2} has been successfully kicked.`,
               timestamp,
               id: generateMessageId(), // Add unique ID
             };
@@ -321,8 +323,9 @@ sendBtn.addEventListener('click', () => {
           }
         });
         break;
+
       case 'hide':
-        const messageRef = ref(db, `messages/${user}`);
+        
         let timestamp2 = new Date().toLocaleString('en-US', { year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric', hour12: true });
         let message2 = { 
           sender: "Server",
@@ -333,20 +336,23 @@ sendBtn.addEventListener('click', () => {
         set(messageRef, message2);
         isHidden = true;
         break;
+
       case 'unhide':
         let timestamp3 = new Date().toLocaleString('en-US', { year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric', hour12: true });
         let message3 = { 
           sender: "Server",
           text: `${user} has connected.`,
-          timestamp3,
+          timestamp: timestamp3,
           id: generateMessageId(), // Add unique ID
         };
         set(messageRef, message3);
+        createChatMessageElement(message3);
         isHidden = false;
         break;
+
       case 'sendAs':
         let target3 = commandParts[1];
-        let messageText = commandParts[2]; // Join the rest of the command as the message text
+        let messageText = commandParts.slice(2).join(' '); // Join the rest of the command as the message text
         if (!target3 || !messageText) {
           alert("Please specify a user and a message to send.");
           return;
@@ -356,7 +362,7 @@ sendBtn.addEventListener('click', () => {
         let message4 = { 
           sender: target3,
           text: messageText,
-          timestamp4,
+          timestamp: timestamp4, // Fix timestamp property
           id: generateMessageId(), // Add unique ID
         };
         set(sendAsRef, message4);
@@ -367,7 +373,7 @@ sendBtn.addEventListener('click', () => {
         let helpMessage = {
           sender: "Server",
           text: `Available commands: /tab, /mute [user], /unmute [user], /kick [user], /hide, /unhide, /sendAs [user] [message], /help`,
-          timestamp,
+          timestamp: new Date().toLocaleString('en-US', { year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric', hour12: true }),
           id: generateMessageId(), // Add unique ID
         };
         createChatMessageElement(helpMessage);
