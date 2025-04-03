@@ -223,14 +223,6 @@ sendBtn.addEventListener('click', async () => {
   }
   let isAdmin = await checkForPerms();
   if (isAdmin && chatInput.value[0] == '/' && chatInput.value != "/tab") {
-    let timestamp = new Date().toLocaleString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true });
-    let message45 = { 
-      sender: "Server",
-      text: `You ran somin.`,
-      timestamp,
-    };
-    createChatMessageElement(message45);
-
     let commandParts = chatInput.value.replace('/', '').split(' '); // Split command into parts
     let target = null;
     if (commandParts[1]) {
