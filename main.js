@@ -216,6 +216,11 @@ const checkForPerms = async () => {
 };
 
 sendBtn.addEventListener('click', async () => {
+  if (chatInput.value.length > 200) {
+    alert("Message too long. Please keep it under 200 characters.");
+    chatInput.value = "";
+    return;
+  }
   let isAdmin = await checkForPerms();
   if (isAdmin && chatInput.value[0] == '/' && chatInput.value != "/tab") {
     let timestamp = new Date().toLocaleString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true });
