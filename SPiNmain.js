@@ -43,7 +43,12 @@ signInWithEmailAndPassword(auth, email, password).then((userCredential) => {
   alert("Error: " + errorMessage);
 }
 );
+const pingsRef = ref(db, `pings/${user}`);
+const pingManager = onValue(pingsRef, () => {
+      set(pingsRef, 'recieved');
+  });
 function login() {
+  set(pingsRef, 'idle');
   usernameDisplay.innerText = user;
   let timestamp = new Date().toLocaleString('en-US', { year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric', hour12: true });
   if (isHidden == 'true') {
@@ -55,6 +60,7 @@ function login() {
     };
     createChatMessageElement(message, user);
   } else {
+    pingManager()
   let message = {
     sender: "Server",
     text: `${user} has connected.`,
@@ -66,14 +72,6 @@ function login() {
   createChatMessageElement(message, user);
   } 
   
-  const pingsRef = ref(db, `pings/${user}`);
-  set(pingsRef, 'idle');
-  onValue(pingsRef, (snapshot) => {
-
-        if (isHidden != true) {
-      set(pingsRef, 'recieved');}
-    
-  });
 
   const usersRef = ref(db, `users/${user}`);
   set(usersRef, user);
@@ -325,7 +323,10 @@ sendBtn.addEventListener('click', () => {
         break;
 
       case 'hide':
-        
+        if (isHidden == true) {
+          alert("You are already hidden.");
+          return;
+        }
         let timestamp2 = new Date().toLocaleString('en-US', { year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric', hour12: true });
         let message2 = { 
           sender: "Server",
@@ -334,10 +335,17 @@ sendBtn.addEventListener('click', () => {
           id: generateMessageId(), // Add unique ID
         };
         set(messageRef, message2);
+        createChatMessageElement(message2);
+        pingManager.off()
         isHidden = true;
         break;
 
       case 'unhide':
+        if (isHidden == false) {
+          alert("You are already visible.");
+          return;
+        }
+
         let timestamp3 = new Date().toLocaleString('en-US', { year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric', hour12: true });
         let message3 = { 
           sender: "Server",
@@ -347,6 +355,7 @@ sendBtn.addEventListener('click', () => {
         };
         set(messageRef, message3);
         createChatMessageElement(message3);
+        pingManager()
         isHidden = false;
         break;
 
