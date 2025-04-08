@@ -232,21 +232,28 @@ sendBtn.addEventListener('click', async () => {
     let commandParts = chatInput.value.replace('/', '').split(' '); // Split command into parts
     let target = null;
     if (commandParts[1]) {
+      
+      if(commandParts[1][0] == '@') {
+        commandParts[1][0] = ''
+      } else if(commandParts[1][0] =='!'){
+        commandParts[1][0] = ""
+      }else {
+
     if (!commandParts[1].includes('@providenceday.org')) {
       console.log(commandParts[1]+' before')
       commandParts[1] = commandParts[1] + '@providenceday.org';
       console.log(commandParts[1]+' after')
-    }}
+    }
     // Fix target assignment logic
     Object.entries(userList).forEach(([key, value]) => {
-      console.log(key)
-        console.log(value)
+      
       if (value === commandParts[1]) {
         target = key;
       }
-    });
+    });}
+  }
 
-    if (!target && ['mute', 'unmute', 'kick', 'sendAs'].includes(commandParts[0])) {
+    if (!target && ['mute', 'unmute', 'kick', 'sendAs','hide','unhide'].includes(commandParts[0])) {
       alert("Please specify a valid user.");
       return;
     }
