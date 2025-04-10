@@ -38,7 +38,7 @@ const sendBtn = document.querySelector(".send-button")
 var messageSender = ''
 var email = ""
 let uid = '';
-let isMuted = 0;
+let isHidden = false;
 let userList = [];
 function logout() {
   let timestamp = new Date().toLocaleString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true })
@@ -234,15 +234,19 @@ sendBtn.addEventListener('click', async () => {
     if (commandParts[1]) {
       
       if(commandParts[1][0] == '@') {
-        commandParts[1][0] = ''
+        commandParts[1] = commandParts[1].substring(1);
+        if (!commandParts[1].includes('@providenceday.org')) {     
+          commandParts[1] = commandParts[1] + '@providenceday.org';
+        }
+        target = commandParts[1];
       } else if(commandParts[1][0] =='!'){
-        commandParts[1][0] = ""
-      }else {
-
-    if (!commandParts[1].includes('@providenceday.org')) {
-      console.log(commandParts[1]+' before')
+        commandParts[1] = commandParts[1].substring(1);
+        target = commandParts[1];
+      }else if(commandParts[1] == 'on' || commandParts[1] == 'off'){
+        target = commandParts[1];
+      } else{
+    if (!commandParts[1].includes('@providenceday.org')) {     
       commandParts[1] = commandParts[1] + '@providenceday.org';
-      console.log(commandParts[1]+' after')
     }
     // Fix target assignment logic
     Object.entries(userList).forEach(([key, value]) => {
@@ -253,12 +257,25 @@ sendBtn.addEventListener('click', async () => {
     });}
   }
 
-    if (!target && ['mute', 'unmute', 'kick', 'sendAs','hide','unhide'].includes(commandParts[0])) {
+    if (!target && ['mute', 'unmute', 'kick', 'sendAs'].includes(commandParts[0])) {
       alert("Please specify a valid user.");
       return;
     }
 
     switch (commandParts[0]) {
+      case 'hide':
+        if (commandParts[1] == 'on') {
+        isHidden = true;
+        alert("You are now hidden.");
+        } else if (commandParts[1] == 'off') {
+          isHidden = false;
+          alert("You are now visible.");
+        } else if (commandParts[1] == '') {
+          alert(isHidden ? "You are hidden." : "You are visible.");
+        } else {
+          alert("Please specify 'on', 'off' or nothing.");
+        }
+        break;
       case 'mute':
         const muteRef = ref(db, `admpings/${target}`);
         set(muteRef, 'mute');
