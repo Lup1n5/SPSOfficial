@@ -18,6 +18,8 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth();
 const db = getDatabase(app);
 
+let pingsRef = null; // Declare pingsRef in the global scope
+let stopPingListener = false; // Add a flag to control the listener
 const usernameDisplay = document.getElementById('user-name')
 const logoutBtn = document.getElementById('logout-button')
 const chatMessages = document.querySelector('.chat-messages')
@@ -29,12 +31,23 @@ const allmessages = ref(db, "messages"); // Move allmessages to global scope
 const email = sessionStorage.getItem('email');
 const password = sessionStorage.getItem('password');
 let isHidden = sessionStorage.getItem('ishidden');
-
+function pingManager(isHidden) {
+  if (isHidden == 'true') {
+    return;
+  }
+  set(pingsRef, 'recieved');
+}
 signInWithEmailAndPassword(auth, email, password).then((userCredential) => {
   const nameFind = ref(db, `usernames/${userCredential.user.uid}`);
   get(nameFind).then((snapshot) => {
     user = snapshot.val();
+    pingsRef = ref(db, `pings/${user}`);
     login();
+    onValue(pingsRef, () => {
+      if (!stopPingListener) { // Check the flag before executing
+        pingManager(isHidden);
+      }
+    });
   });
 }).catch((error) => {
   const errorCode = error.code;
@@ -43,13 +56,12 @@ signInWithEmailAndPassword(auth, email, password).then((userCredential) => {
   alert("Error: " + errorMessage);
 }
 );
-const pingsRef = ref(db, `pings/${user}`);
-const pingManager = onValue(pingsRef, () => {
-      set(pingsRef, 'recieved');
-  });
+
 function login() {
-  set(pingsRef, 'idle');
   usernameDisplay.innerText = user;
+  
+  
+  
   let timestamp = new Date().toLocaleString('en-US', { year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric', hour12: true });
   if (isHidden == 'true') {
     let message = {
@@ -60,7 +72,8 @@ function login() {
     };
     createChatMessageElement(message, user);
   } else {
-    pingManager()
+    set(pingsRef, 'idle');
+    
   let message = {
     sender: "Server",
     text: `${user} has connected.`,
@@ -128,7 +141,7 @@ function login() {
 }
 
 logoutBtn.addEventListener('click', () => {
-  if (isHidden == false) {
+    if (isHidden == false) {
   let timestamp = new Date().toLocaleString('en-US', { year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric', hour12: true });
   let message = {
     sender: "Server",
@@ -151,7 +164,9 @@ const createChatMessageElement = (message) => {
   if (document.querySelector(`[data-message-id="${message.id}"]`)) {
     return; // Do not create a duplicate message element
   }
-  if (message.timestamp.getTime() < Date.now() - 60000) {
+
+  
+  if (new Date(message.timestamp) < Date.now()- 60000) {
     return; // Ignore messages older than 1 minute
   }
   const newMessage = document.createElement("div");
@@ -204,13 +219,19 @@ sendBtn.addEventListener('click', () => {
         const refage = ref(db, `pings`);
         let output = [];
         get(refage).then((snapshot) => {
+          console.log(snapshot.val());
           const ids = Object.keys(snapshot.val());
           const vals = Object.values(snapshot.val());
           for (var i = 0; i < ids.length; i++) {
             if (vals[i] == 'recieved') {
+              if (ids[i] == null) {
+                output.push('1 hidden user');
+              } else {
               output.push(ids[i]);
+              }
             }
           }
+          console.log(output);
           if (output.length < 2) {
             let timestamp = new Date().toLocaleString('en-US', { year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric', hour12: true });
             let message = {
@@ -329,16 +350,16 @@ sendBtn.addEventListener('click', () => {
           alert("You are already hidden.");
           return;
         }
-        let timestamp2 = new Date().toLocaleString('en-US', { year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric', hour12: true });
+        
         let message2 = { 
           sender: "Server",
           text: `${user} has disconnected.`,
-          timestamp2,
+          timestamp:new Date().toLocaleString('en-US', { year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric', hour12: true }),
           id: generateMessageId(), // Add unique ID
         };
         set(messageRef, message2);
         createChatMessageElement(message2);
-        pingManager.off()
+        
         isHidden = true;
         break;
 
@@ -357,7 +378,7 @@ sendBtn.addEventListener('click', () => {
         };
         set(messageRef, message3);
         createChatMessageElement(message3);
-        pingManager()
+
         isHidden = false;
         break;
 
