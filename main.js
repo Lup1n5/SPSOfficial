@@ -1,6 +1,6 @@
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.1.3/firebase-app.js';
 import { getDatabase, ref, set, onValue, get, off } from 'https://www.gstatic.com/firebasejs/9.1.3/firebase-database.js';
-import { getFirestore } from 'https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js';
+//import { getFirestore } from 'https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js';
 import { getAuth, 
          createUserWithEmailAndPassword, 
          signInWithEmailAndPassword, 
@@ -21,7 +21,7 @@ const firebaseConfig = {
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const auth = getAuth();
-const firestoredb = getFirestore(app);
+//const firestoredb = getFirestore(app);
 const realtimedb = getDatabase(app);
 
 const spinBtn = document.getElementById('spin-button')

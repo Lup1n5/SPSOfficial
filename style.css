@@ -258,17 +258,14 @@ h1 {
 .message {
   margin-bottom: 1rem;
   padding-bottom: 1rem;
-  border-bottom: 1px solid #ddd;
 }
 
 .user-tag {
   margin-bottom: 0.5rem;
   font-weight: bold;
-  color: #555;
 }
 
 .user-msg {
-  color: #333;
 }
 
 /* Logout Button */
@@ -340,7 +337,7 @@ h1 {
 }
 
 .message {
-  padding: 0.625em;
+  padding: 0em;
   border-radius: 1em;
   margin-bottom: 0.625em;
   
@@ -365,11 +362,11 @@ h1 {
 }
 
 .blue-bg {
-  background-color: #1c9bef;
+
 }
 
 .gray-bg {
-  background-color: #3d5365;
+
 }
 .yello-bg {
   background-color: #cce019;
