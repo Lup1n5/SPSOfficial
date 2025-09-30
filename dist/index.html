@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Stewflandic Permission System</title>
-  <script type="module" crossorigin src="/assets/index-BiEuf1oJ.js"></script>
-  <link rel="stylesheet" crossorigin href="/assets/index-Cf4r3udh.css">
+  <script type="module" crossorigin src="/assets/index-DQNXLHdE.js"></script>
+  <link rel="stylesheet" crossorigin href="/assets/index-D-HqIpgE.css">
 </head> 
 <body>
     <main>
@@ -49,13 +49,20 @@
                     <div class="chat-messages"></div>
               
                     <div class="chat-input-form">
-                      <input type="text" class="chat-input" required placeholder="Type here..."/>
+                      <input type="text" class="chat-input" required placeholder="Type here..." maxlength="200" title="" />
                       <button class="button send-button">Send</button>
                     </div>
                     
                   </div>
                   <div class="top-section">
-                    <h2 class="greeting">Welcome to The Stewflandic Permission System! <br>You are logged in as <span id="user-email"></span>.</h2>
+                    <h2 class="greeting">Welcome to The Stewflandic Permission System! <br>You are logged in as <span id="user-email"></span><span id="hidden-box"></span>.</h2>
+                    <form class="hidden-form">
+                        <div class="hidden-box">
+                        <input type="checkbox" id="hiddenToggle" name="hidden">
+                        <label for="hiddenToggle">Hidden Mode</label>
+                    </div>
+                        <button id="spin-button">Connect to SPiN</button>
+                    </form>
                     <button id="logout-button" class="logout-btn">Logout</button>
                 </div>
             </section>
@@ -90,4 +97,4 @@
 
     <!-- Import external script -->
 </body>
-</html> 
+</html>

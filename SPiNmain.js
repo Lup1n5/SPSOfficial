@@ -16,7 +16,7 @@ const firebaseConfig = {
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const auth = getAuth();
-const db = getDatabase(app);
+const realtimedb = getDatabase(app);
 
 let pingsRef = null; // Declare pingsRef in the global scope
 let stopPingListener = false; // Add a flag to control the listener
@@ -26,8 +26,8 @@ const chatMessages = document.querySelector('.chat-messages')
 const chatInput = document.querySelector('.chat-input')
 const sendBtn = document.querySelector(".send-button")
 let user= '';
-const userCountRef = ref(db, 'userCount'); // Move userCountRef to global scope
-const allmessages = ref(db, "messages"); // Move allmessages to global scope
+const userCountRef = ref(realtimedb, 'userCount'); // Move userCountRef to global scope
+const allmessages = ref(realtimedb, "messages"); // Move allmessages to global scope
 const email = sessionStorage.getItem('email');
 const password = sessionStorage.getItem('password');
 let isHidden = sessionStorage.getItem('ishidden');
@@ -38,10 +38,10 @@ function pingManager(isHidden) {
   set(pingsRef, 'recieved');
 }
 signInWithEmailAndPassword(auth, email, password).then((userCredential) => {
-  const nameFind = ref(db, `usernames/${userCredential.user.uid}`);
+  const nameFind = ref(realtimedb, `usernames/${userCredential.user.uid}`);
   get(nameFind).then((snapshot) => {
     user = snapshot.val();
-    pingsRef = ref(db, `pings/${user}`);
+    pingsRef = ref(realtimedb, `pings/${user}`);
     login();
     onValue(pingsRef, () => {
       if (!stopPingListener) { // Check the flag before executing
@@ -80,13 +80,13 @@ function login() {
     timestamp,
     id: generateMessageId(), // Add unique ID
   };
-  const messageRef = ref(db, `messages/${user}`);
+  const messageRef = ref(realtimedb, `messages/${user}`);
   set(messageRef, message);
   createChatMessageElement(message, user);
   } 
   
 
-  const usersRef = ref(db, `users/${user}`);
+  const usersRef = ref(realtimedb, `users/${user}`);
   set(usersRef, user);
   get(userCountRef).then((DataSnapshot) => {
     set(userCountRef, DataSnapshot.val() + 1);
@@ -98,7 +98,7 @@ function login() {
   onValue(userCountRef, () => {
     // Remove all existing listeners for messages
     Object.keys(messageListeners).forEach((poop) => {
-      const userRef = ref(db, `messages/${poop}/text`);
+      const userRef = ref(realtimedb, `messages/${poop}/text`);
       if (messageListeners[poop]) {
         off(userRef, messageListeners[poop]); // Properly remove the listener
         delete messageListeners[poop]; // Remove from the tracking object
@@ -109,11 +109,11 @@ function login() {
     get(allmessages).then((snapshot) => {
       if (snapshot.exists()) {
         Object.keys(snapshot.val()).forEach((poop) => {
-          const userRef = ref(db, `messages/${poop}/text`);
+          const userRef = ref(realtimedb, `messages/${poop}/text`);
           if (!messageListeners[poop]) {
             messageListeners[poop] = onValue(userRef, (userSnapshot) => {
               if (userSnapshot.exists() && initialized) {
-                const reef = ref(db, `messages/${poop}`);
+                const reef = ref(realtimedb, `messages/${poop}`);
                 get(reef).then((messageSnapshot) => {
                   if (messageSnapshot.exists()) {
                     let snap = messageSnapshot.val();
@@ -149,7 +149,7 @@ logoutBtn.addEventListener('click', () => {
     timestamp,
     id: generateMessageId(), // Add unique ID
   }
-  const messageRef = ref(db,`messages/${user}`)
+  const messageRef = ref(realtimedb,`messages/${user}`)
   set(messageRef,message)
 }
   signOut(auth)
@@ -190,10 +190,10 @@ sendBtn.addEventListener('click', () => {
       id: generateMessageId(), // Add unique ID to the message
     };
     if (message.text) {
-      const messageRef = ref(db, `messages/${user}`);
+      const messageRef = ref(realtimedb, `messages/${user}`);
 
         set(messageRef, message);
-        const counterRef = ref(db, 'messageCount');
+        const counterRef = ref(realtimedb, 'messageCount');
         get(counterRef).then((DataSnapshot) => {
           set(counterRef, DataSnapshot.val() + 1);
         });
@@ -202,21 +202,21 @@ sendBtn.addEventListener('click', () => {
       chatInput.value = "";
     }
   } else {
-    const messageRef = ref(db, `messages/${user}`);
+    const messageRef = ref(realtimedb, `messages/${user}`);
     let commandParts = chatInput.value.replace('/', '').split(' '); // Split command into parts
 
     switch (commandParts[0]) {
       case 'tab':
-        const refage = ref(db, `pings`);
+        const refage = ref(realtimedb, `pings`);
 
     get(refage).then((snapshot) => {
       Object.keys(snapshot.val()).forEach((poop) => {
-        const refrence = ref(db, `pings/${poop}`);
+        const refrence = ref(realtimedb, `pings/${poop}`);
         set(refrence, 'pinging');
       });
 
       setTimeout(function () {
-        const refage = ref(db, `pings`);
+        const refage = ref(realtimedb, `pings`);
         let output = [];
         get(refage).then((snapshot) => {
           console.log(snapshot.val());
@@ -243,7 +243,7 @@ sendBtn.addEventListener('click', () => {
             createChatMessageElement(message);
           } else {
             output.forEach((snap) => {
-              const refage = ref(db, `users/${snap}`);
+              const refage = ref(realtimedb, `users/${snap}`);
               get(refage).then((snapshot) => {
                 let timestamp = new Date().toLocaleString('en-US', { year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric', hour12: true });
                 let message = {
@@ -261,7 +261,7 @@ sendBtn.addEventListener('click', () => {
         });
 
         output.forEach((snap) => {
-          const refage = ref(db, `pings/${snap}`);
+          const refage = ref(realtimedb, `pings/${snap}`);
           set(refage, 'idle');
         });
       }, 1000);
@@ -275,7 +275,7 @@ sendBtn.addEventListener('click', () => {
           alert("Please specify a user to mute.");
           return;
         }
-        const muteRef = ref(db, `admpings/${target}`);
+        const muteRef = ref(realtimedb, `admpings/${target}`);
         set(muteRef, 'mute');
         const watcher = onValue(muteRef, (snapshot) => {  
           if (snapshot.val() === 'muted') {
@@ -320,7 +320,7 @@ sendBtn.addEventListener('click', () => {
           alert("Please specify a user to kick.");
           return;
         }
-        const kickRef = ref(db, `admpings/${target2}`);
+        const kickRef = ref(realtimedb, `admpings/${target2}`);
         set(kickRef, 'kick');
         let timestamp = new Date().toLocaleString('en-US', { year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric', hour12: true });
         let message = { 
@@ -389,7 +389,7 @@ sendBtn.addEventListener('click', () => {
           alert("Please specify a user and a message to send.");
           return;
         }
-        const sendAsRef = ref(db, `messages/${user}`);
+        const sendAsRef = ref(realtimedb, `messages/${user}`);
         let timestamp4 = new Date().toLocaleString('en-US', { year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric', hour12: true });
         let message4 = { 
           sender: target3,

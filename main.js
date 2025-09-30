@@ -1,5 +1,6 @@
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.1.3/firebase-app.js';
 import { getDatabase, ref, set, onValue, get, off } from 'https://www.gstatic.com/firebasejs/9.1.3/firebase-database.js';
+import { getFirestore } from 'https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js';
 import { getAuth, 
          createUserWithEmailAndPassword, 
          signInWithEmailAndPassword, 
@@ -20,7 +21,8 @@ const firebaseConfig = {
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const auth = getAuth();
-const db = getDatabase(app);
+const firestoredb = getFirestore(app);
+const realtimedb = getDatabase(app);
 
 const spinBtn = document.getElementById('spin-button')
 const hiddenToggle = document.getElementById('hiddenToggle')
@@ -47,7 +49,7 @@ function logout() {
     text: `${messageSender} has disconnected.`,
     timestamp,
   }
-  const messageRef = ref(db,`messages/${uid}`)
+  const messageRef = ref(realtimedb,`messages/${uid}`)
   set(messageRef,message)
   for (var i = 0; i<chatMessages.childElementCount; i++) { 
     chatMessages.removeChild(chatMessages.firstChild); 
@@ -61,7 +63,7 @@ function logout() {
   
 }
 const checkAdmPings = async () => { // Ensure proper case handling
-  const adminPingsRef = ref(db, `admpings/${uid}`);
+  const adminPingsRef = ref(realtimedb, `admpings/${uid}`);
   const snapshot = await get(adminPingsRef);
   switch (snapshot.val()) {
     case 'mute':
@@ -96,19 +98,19 @@ onAuthStateChanged(auth, async (user) => { // Await checkAdmPings here
       passwordSignInForm.value = ""
       loggedOutView.style.display = 'none'
       messageSender = email
-      const refage = ref(db, `pings/${uid}`)
-      const refag = ref(db, `users/${uid}`)
+      const refage = ref(realtimedb, `pings/${uid}`)
+      const refag = ref(realtimedb, `users/${uid}`)
       get(refag).then((snapshot) => {
         set(refag, email)
         if (snapshot.val() == 'refresh') {
           logout();
         } 
       })
-      const userRef = ref(db, `users`);
+      const userRef = ref(realtimedb, `users`);
       get(userRef).then((snapshot) => {
         userList = snapshot.val();
       })
-      const adminPingsRef = ref(db,`admpings/${uid}`)
+      const adminPingsRef = ref(realtimedb,`admpings/${uid}`)
       onValue(adminPingsRef, (snapshot) => {
         switch (snapshot.val()) {
           case 'mute'||'muted':
@@ -135,26 +137,26 @@ onAuthStateChanged(auth, async (user) => { // Await checkAdmPings here
     text: `${messageSender} has connected.`,
     timestamp,
   }
-  const messageRef = ref(db,`messages/${uid}`)
+  const messageRef = ref(realtimedb,`messages/${uid}`)
   set(messageRef,message)
       get(refage).then((snapshot) =>{
         if (!snapshot.val()) {
           set(refage, 'x')
         }
       })
-      const pingPong = ref(db, `pings/${uid}`)
+      const pingPong = ref(realtimedb, `pings/${uid}`)
 onValue(pingPong,(snapshot) =>{
   const snapp = snapshot.val()
   if (snapp =='pinging' && document.visibilityState !== 'hidden') {
     set(pingPong, 'recieved')
 }})
 let initialized = false;
-const allmessages = ref(db, "messages")
+const allmessages = ref(realtimedb, "messages")
 get(allmessages).then((snapshot) =>{
   Object.keys(snapshot.val()).forEach((poop) => {
-    const userRef = ref(db, `messages/${poop}/text`)
+    const userRef = ref(realtimedb, `messages/${poop}/text`)
     onValue(userRef, () =>{
-  const reef = ref(db, `messages/${poop}`)
+  const reef = ref(realtimedb, `messages/${poop}`)
   get(reef).then((snapshot) =>{
     let snap = snapshot.val()
     if (snap.sender != messageSender && initialized) {
@@ -212,7 +214,7 @@ chatMessages.scrollTop = chatMessages.scrollHeight
   }
 }
 const checkForPerms = async () => {
-  const refage = ref(db, `AdminMan`);
+  const refage = ref(realtimedb, `AdminMan`);
   const snapshot = await get(refage);
   if (snapshot.val() == uid) {
     return true;
@@ -277,7 +279,7 @@ sendBtn.addEventListener('click', async () => {
         }
         break;
       case 'mute':
-        const muteRef = ref(db, `admpings/${target}`);
+        const muteRef = ref(realtimedb, `admpings/${target}`);
         set(muteRef, 'mute');
         onValue(muteRef, (snapshot) => {
           if (snapshot.val() === 'muted') {
@@ -293,7 +295,7 @@ sendBtn.addEventListener('click', async () => {
         break;
 
       case 'unmute':
-        const unmuteRef = ref(db, `admpings/${target}`);
+        const unmuteRef = ref(realtimedb, `admpings/${target}`);
         set(unmuteRef, 'unmute');
         onValue(unmuteRef, (snapshot) => {
           if (snapshot.val() === 'unmuted') {
@@ -309,7 +311,7 @@ sendBtn.addEventListener('click', async () => {
         break;
 
       case 'kick':
-        const kickRef = ref(db, `admpings/${target}`);
+        const kickRef = ref(realtimedb, `admpings/${target}`);
         set(kickRef, 'kick');
         let kickMessage = {
           sender: "Server",
@@ -331,7 +333,7 @@ sendBtn.addEventListener('click', async () => {
         break;
 
       case 'sendAs':
-        const sendAsRef = ref(db, `messages/${uid}`);
+        const sendAsRef = ref(realtimedb, `messages/${uid}`);
         let messageText = commandParts.slice(2).join(' '); // Join the rest of the command as the message text
         if (!messageText) {
           alert("Please specify a message to send.");
@@ -369,10 +371,10 @@ sendBtn.addEventListener('click', async () => {
       timestamp,
     };
     if (message.text) {
-      const messageRef = ref(db, `messages/${uid}`);
+      const messageRef = ref(realtimedb, `messages/${uid}`);
       if (!(await checkAdmPings())) { // Await checkAdmPings here
         await set(messageRef, message); // Ensure this is awaited
-        const counterRef = ref(db, 'messageCount');
+        const counterRef = ref(realtimedb, 'messageCount');
         const DataSnapshot = await get(counterRef); // Await get here
         await set(counterRef, DataSnapshot.val() + 1); // Ensure this is awaited
       }
@@ -381,15 +383,15 @@ sendBtn.addEventListener('click', async () => {
     }
   } else {
 
-  const refage = ref(db, `pings`)
+  const refage = ref(realtimedb, `pings`)
 
   get(refage).then((snapshot) =>{
     Object.keys(snapshot.val()).forEach((poop) =>{
-      const refrence = ref(db, `pings/${poop}`)
+      const refrence = ref(realtimedb, `pings/${poop}`)
       set(refrence, 'pinging')
     })
     setTimeout(function(){
-      const refage = ref(db, `pings`)
+      const refage = ref(realtimedb, `pings`)
       let output = [];
         get(refage).then((snapshot)=>{
          const ids = Object.keys(snapshot.val())
@@ -409,7 +411,7 @@ sendBtn.addEventListener('click', async () => {
           createChatMessageElement(message);  
           }
       output.forEach((snap)=>{
-        const refage = ref(db, `users/${snap}`)
+        const refage = ref(realtimedb, `users/${snap}`)
         get(refage).then((snapshot)=>{
           let timestamp = new Date().toLocaleString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true })
       let message = {
