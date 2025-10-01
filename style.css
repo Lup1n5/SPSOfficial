@@ -347,7 +347,7 @@ h1 {
 .message-sender {
   font-weight: bold;
   margin-bottom: 0.31em;
-  
+  display: inline;
 }
 
 .message-text {
@@ -355,10 +355,13 @@ h1 {
   margin-bottom: 0.31em;
   word-wrap: break-word;
 }
-
+.message-top {
+  display: inline-block;
+}
 .message-timestamp {
   font-size: 0.75em;
   text-align: right;
+  display: inline;
 }
 
 .blue-bg {

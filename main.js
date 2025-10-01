@@ -206,7 +206,8 @@ const createChatMessageElement = (message) => {
   let time2 = message.timestamp.replace(/[:APM]/g, ""); 
   if (Math.abs(Number(time2)-Number(time1)) <2) {
 newMessage.innerHTML = `<div class="message ${message.sender === messageSender ? 'blue-bg' : message.text.includes('@'+messageSender.replace("@providenceday.org",'')) == true ? 'yello-bg' : 'gray-bg'}">
-  <div class="message-sender">${message.timestamp}:          ${message.sender}</div>
+  <div class="message-top"><div class="message-sender">${message.sender.split('.')[0]}</div>
+  <div class="message-timestamp">${message.timestamp}</div></div>
   <div class="message-text">${message.text}</div>
   </div>`;
 chatMessages.appendChild(newMessage);
