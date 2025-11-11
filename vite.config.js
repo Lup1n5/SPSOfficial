@@ -10,8 +10,10 @@ export default defineConfig({
         main: './index.html',
         spin: './SPiN.html'
       }
-    }
+    },
+    copyPublicDir: true
   },
+  publicDir: 'public',
   server: {
     port: 3000,
     open: true

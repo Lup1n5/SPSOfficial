@@ -8,6 +8,8 @@ import { getAuth,
          signInWithPopup,
          onAuthStateChanged,
          signOut } from './node_modules/firebase/auth';
+// Remove Firebase Messaging for iOS PWA compatibility
+// import { getMessaging, getToken, onMessage } from './node_modules/firebase/messaging';
 const firebaseConfig = {
   apiKey: "AIzaSyAYjLbsdGgVccTHa_bpEaDh7orYmzldiMk",
   authDomain: "stewflandic-permission-system.firebaseapp.com",
@@ -23,6 +25,8 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth();
 //const firestoredb = getFirestore(app);
 const realtimedb = getDatabase(app);
+// Remove messaging for iOS PWA compatibility
+// const messaging = getMessaging(app);
 
 const spinBtn = document.getElementById('spin-button')
 const hiddenToggle = document.getElementById('hiddenToggle')
@@ -42,6 +46,8 @@ var email = ""
 let uid = '';
 let isHidden = false;
 let userList = [];
+let isAppInForeground = true;
+let pushSubscription = null;
 function logout() {
   let timestamp = new Date().toLocaleString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true })
   let message = {
@@ -86,7 +92,7 @@ onAuthStateChanged(auth, async (user) => { // Await checkAdmPings here
       //console.log(email)
       loggedInView.style.display = 'block'
       userEmail.innerText = email
-      
+      await setupPushNotifications();
       
       if (!sessionStorage.getItem('password') && passwordSignInForm.value == "") {
         logout()
@@ -160,7 +166,13 @@ get(allmessages).then((snapshot) =>{
   get(reef).then((snapshot) =>{
     let snap = snapshot.val()
     if (snap.sender != messageSender && initialized) {
-    createChatMessageElement(snap)
+      createChatMessageElement(snap)
+      
+      // If app is in foreground, don't show browser notification
+      // The message will be displayed in the chat instead
+      if (isAppInForeground) {
+        console.log('Message received while app in foreground - showing in chat only');
+      }
     } 
 
   })
@@ -378,6 +390,9 @@ sendBtn.addEventListener('click', async () => {
         const counterRef = ref(realtimedb, 'messageCount');
         const DataSnapshot = await get(counterRef); // Await get here
         await set(counterRef, DataSnapshot.val() + 1); // Ensure this is awaited
+        
+        // Send push notification to all users except sender
+        await sendNotificationToAllUsers(message);
       }
       createChatMessageElement(message);
       chatInput.value = "";
@@ -449,3 +464,132 @@ spinBtn.addEventListener('click', () => {
   sessionStorage.setItem('ishidden', hiddenToggle.checked);
   window.location.href = 'SPiN.html';
 })
+
+
+
+// Track app visibility to prevent notifications when app is in foreground
+document.addEventListener('visibilitychange', () => {
+  isAppInForeground = !document.hidden;
+  console.log('App visibility changed:', isAppInForeground ? 'foreground' : 'background');
+});
+
+// Register service worker for iOS PWA
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', async () => {
+    try {
+      const registration = await navigator.serviceWorker.register('/sw.js');
+      console.log('ServiceWorker registered: ', registration);
+    } catch (error) {
+      console.log('ServiceWorker registration failed: ', error);
+    }
+  });
+}
+
+// Setup push notifications for iOS PWA
+async function setupPushNotifications() {
+  try {
+    const permission = await Notification.requestPermission();
+    
+    if (permission === 'granted') {
+      console.log('Notification permission granted');
+      
+      // Register service worker and get push subscription
+      const registration = await navigator.serviceWorker.ready;
+      
+      if ('PushManager' in window) {
+        try {
+          // Check if already subscribed
+          pushSubscription = await registration.pushManager.getSubscription();
+          
+          if (!pushSubscription) {
+            // Subscribe to push notifications
+            pushSubscription = await registration.pushManager.subscribe({
+              userVisibleOnly: true,
+              applicationServerKey: urlBase64ToUint8Array('BJo1BD-PijqyL2M0xNwy0xvOfFurS2d2vxG7LK78OtqJDgoogUuQbPp-iJ6QpuQNqFf5ljXaUmoPjZwNC2DlGSY')
+            });
+          }
+          
+          console.log('Push subscription:', pushSubscription);
+          
+          // Save subscription to Firebase
+          if (pushSubscription && uid) {
+            const subscriptionRef = ref(realtimedb, `pushSubscriptions/${uid}`);
+            await set(subscriptionRef, {
+              endpoint: pushSubscription.endpoint,
+              keys: {
+                p256dh: arrayBufferToBase64(pushSubscription.getKey('p256dh')),
+                auth: arrayBufferToBase64(pushSubscription.getKey('auth'))
+              },
+              userEmail: email
+            });
+          }
+        } catch (pushError) {
+          console.log('Push subscription failed:', pushError);
+        }
+      }
+    }
+  } catch (err) {
+    console.log('Notification permission error:', err);
+  }
+}
+
+// Helper functions for push notifications
+function urlBase64ToUint8Array(base64String) {
+  const padding = '='.repeat((4 - base64String.length % 4) % 4);
+  const base64 = (base64String + padding)
+    .replace(/\-/g, '+')
+    .replace(/_/g, '/');
+
+  const rawData = window.atob(base64);
+  const outputArray = new Uint8Array(rawData.length);
+
+  for (let i = 0; i < rawData.length; ++i) {
+    outputArray[i] = rawData.charCodeAt(i);
+  }
+  return outputArray;
+}
+
+function arrayBufferToBase64(buffer) {
+  const bytes = new Uint8Array(buffer);
+  let binary = '';
+  bytes.forEach((b) => binary += String.fromCharCode(b));
+  return window.btoa(binary);
+}
+
+// Send push notification to all users except sender
+async function sendNotificationToAllUsers(messageData) {
+  try {
+    // Get all push subscriptions
+    const subscriptionsRef = ref(realtimedb, 'pushSubscriptions');
+    const snapshot = await get(subscriptionsRef);
+    
+    if (snapshot.exists()) {
+      const subscriptions = snapshot.val();
+      
+      // Create notification payload
+      const notificationPayload = {
+        title: 'New Message in SPS',
+        body: `${messageData.sender.split('@')[0]}: ${messageData.text}`,
+        icon: '/icon-192x192.png',
+        badge: '/icon-192x192.png',
+        sender: messageData.sender,
+        messageText: messageData.text,
+        timestamp: messageData.timestamp
+      };
+      
+      // Store notification request in Firebase for backend processing
+      const notificationRef = ref(realtimedb, `notificationQueue/${Date.now()}`);
+      await set(notificationRef, {
+        payload: notificationPayload,
+        senderUid: uid,
+        subscriptions: subscriptions,
+        timestamp: Date.now()
+      });
+      
+      console.log('Notification queued for backend processing');
+    }
+  } catch (error) {
+    console.log('Error sending notifications:', error);
+  }
+}
+
