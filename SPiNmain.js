@@ -1,9 +1,6 @@
-import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.1.3/firebase-app.js';
-import { getDatabase, ref, set, onValue, get, off } from 'https://www.gstatic.com/firebasejs/9.1.3/firebase-database.js';
-import { getAuth, 
-  signInWithEmailAndPassword, 
-  onAuthStateChanged,
-  signOut } from 'https://www.gstatic.com/firebasejs/9.1.3/firebase-auth.js';
+import { initializeApp } from './node_modules/firebase/app';
+import { getDatabase, ref, set, onValue, get, off } from './node_modules/firebase/database';
+import { getAuth, signInWithEmailAndPassword, signOut } from './node_modules/firebase/auth';
 const firebaseConfig = {
   apiKey: "AIzaSyD68PbyrHLGNYf9Kg_Xb_XKiKegz-Kov7k",
     authDomain: "spin-a3d5a.firebaseapp.com",

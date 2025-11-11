@@ -1,13 +1,13 @@
-import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.1.3/firebase-app.js';
-import { getDatabase, ref, set, onValue, get, off } from 'https://www.gstatic.com/firebasejs/9.1.3/firebase-database.js';
-//import { getFirestore } from 'https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js';
+import { initializeApp } from './node_modules/firebase/app';
+import { getDatabase, ref, set, onValue, get, off } from './node_modules/firebase/database';
+//import { getFirestore } from './node_modules/firebase/firestore';
 import { getAuth, 
          createUserWithEmailAndPassword, 
          signInWithEmailAndPassword, 
          GoogleAuthProvider,
          signInWithPopup,
          onAuthStateChanged,
-         signOut } from 'https://www.gstatic.com/firebasejs/9.1.3/firebase-auth.js';
+         signOut } from './node_modules/firebase/auth';
 const firebaseConfig = {
   apiKey: "AIzaSyAYjLbsdGgVccTHa_bpEaDh7orYmzldiMk",
   authDomain: "stewflandic-permission-system.firebaseapp.com",
