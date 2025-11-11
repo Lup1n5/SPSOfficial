@@ -570,8 +570,8 @@ async function sendNotificationToAllUsers(messageData) {
       const notificationPayload = {
         title: 'New Message in SPS',
         body: `${messageData.sender.split('@')[0]}: ${messageData.text}`,
-        icon: '/icon-192x192.png',
-        badge: '/icon-192x192.png',
+        // icon: '/icon-192x192.png',
+        // badge: '/icon-192x192.png',
         sender: messageData.sender,
         messageText: messageData.text,
         timestamp: messageData.timestamp
