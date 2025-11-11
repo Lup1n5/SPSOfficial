@@ -7,7 +7,7 @@ const webpush = require('web-push');
 // Configure web-push with VAPID keys
 webpush.setVapidDetails(
   'mailto:your-email@example.com',
-  'BJo1BD-PijqyL2M0xNwy0xvOfFurS2d2vxG7LK78OtqJDgoogUuQbPp-iJ6QpuQNqFf5ljXaUmoPjZwNC2DlGSY', // Public key
+  '', // Public key
   'YOUR_PRIVATE_VAPID_KEY_HERE' // You need to generate this
 );
 
@@ -23,26 +23,34 @@ const db = admin.database();
 // Listen for notification queue
 db.ref('notificationQueue').on('child_added', async (snapshot) => {
   const notificationData = snapshot.val();
-  
+
   console.log('Processing notification:', notificationData);
-  
-  const { payload, senderUid, subscriptions } = notificationData;
-  
-  // Send to all subscriptions except the sender
-  const promises = Object.entries(subscriptions).map(([uid, subscription]) => {
-    if (uid !== senderUid) { // Don't send to sender
-      return webpush.sendNotification(subscription, JSON.stringify(payload))
-        .catch(error => {
-          console.error('Error sending notification to', uid, ':', error);
-          // Optionally remove invalid subscriptions
-        });
-    }
-  }).filter(Boolean);
-  
+
+  const { payload, senderUid } = notificationData;
+
   try {
-    await Promise.all(promises);
+    // Fetch current push subscriptions from the database
+    const subsSnap = await db.ref('pushSubscriptions').once('value');
+    const subscriptions = subsSnap.val() || {};
+
+    // Send to all subscriptions except the sender
+    const sendTasks = Object.entries(subscriptions)
+      .filter(([uid]) => uid !== senderUid)
+      .map(async ([uid, subscription]) => {
+        try {
+          await webpush.sendNotification(subscription, JSON.stringify(payload));
+        } catch (error) {
+          console.error('Error sending notification to', uid, ':', error.message || error);
+          // If subscription is gone or invalid, remove it
+          if (error.statusCode === 404 || error.statusCode === 410) {
+            await db.ref(`pushSubscriptions/${uid}`).remove();
+          }
+        }
+      });
+
+    await Promise.all(sendTasks);
     console.log('Notifications sent successfully');
-    
+
     // Remove processed notification from queue
     await snapshot.ref.remove();
   } catch (error) {

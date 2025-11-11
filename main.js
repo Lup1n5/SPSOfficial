@@ -557,37 +557,27 @@ function arrayBufferToBase64(buffer) {
 }
 
 // Send push notification to all users except sender
+// Security change: do NOT include subscriptions; backend will fetch them
 async function sendNotificationToAllUsers(messageData) {
   try {
-    // Get all push subscriptions
-    const subscriptionsRef = ref(realtimedb, 'pushSubscriptions');
-    const snapshot = await get(subscriptionsRef);
-    
-    if (snapshot.exists()) {
-      const subscriptions = snapshot.val();
-      
-      // Create notification payload
-      const notificationPayload = {
-        title: 'New Message in SPS',
-        body: `${messageData.sender.split('@')[0]}: ${messageData.text}`,
-        // icon: '/icon-192x192.png',
-        // badge: '/icon-192x192.png',
-        sender: messageData.sender,
-        messageText: messageData.text,
-        timestamp: messageData.timestamp
-      };
-      
-      // Store notification request in Firebase for backend processing
-      const notificationRef = ref(realtimedb, `notificationQueue/${Date.now()}`);
-      await set(notificationRef, {
-        payload: notificationPayload,
-        senderUid: uid,
-        subscriptions: subscriptions,
-        timestamp: Date.now()
-      });
-      
-      console.log('Notification queued for backend processing');
-    }
+    // Create notification payload (no subscription data)
+    const notificationPayload = {
+      title: 'New Message in SPS',
+      body: `${messageData.sender.split('@')[0]}: ${messageData.text}`,
+      sender: messageData.sender,
+      messageText: messageData.text,
+      timestamp: messageData.timestamp
+    };
+
+    // Store notification request in Firebase for backend processing
+    const notificationRef = ref(realtimedb, `notificationQueue/${Date.now()}`);
+    await set(notificationRef, {
+      payload: notificationPayload,
+      senderUid: uid,
+      timestamp: Date.now()
+    });
+
+    console.log('Notification queued for backend processing');
   } catch (error) {
     console.log('Error sending notifications:', error);
   }
