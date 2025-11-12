@@ -7,7 +7,7 @@ const webpush = require('web-push');
 // Configure web-push with VAPID keys
 webpush.setVapidDetails(
   'mailto:your-email@example.com',
-  '', // Public key
+  'BOTUZEYhxChOXBdKsnmGdtmUq210kpYm6exbwPo1j7sgEp4qj9kQ0yN5uD52BZKgMfrShKyLH77ahubYg7Qrjd4', // Public key
   'YOUR_PRIVATE_VAPID_KEY_HERE' // You need to generate this
 );
 
