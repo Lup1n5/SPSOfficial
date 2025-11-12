@@ -591,7 +591,7 @@ async function setupPushNotifications() {
           
           const subscribeOptions = {
             userVisibleOnly: true,
-            applicationServerKey: urlBase64ToUint8Array('BOTUZEYhxChOXBdKsnmGdtmUq210kpYm6exbwPo1j7sgEp4qj9kQ0yN5uD52BZKgMfrShKyLH77ahubYg7Qrjd4')
+            applicationServerKey: urlBase64ToUint8Array('BO7AQkuK-62TR28KVs30sTvXUIpGRaK-fF-Nv-ZrDP4KZ7EGEEHTQTcfUl7k3FlaekK6rQ3HLmhq0nlThhYfETs')
           };
           
           // Add iOS-specific options
