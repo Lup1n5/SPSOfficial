@@ -502,11 +502,36 @@ async function setupPushNotifications() {
           pushSubscription = await registration.pushManager.getSubscription();
           
           if (!pushSubscription) {
+            console.log('No existing subscription, creating new one...');
             // Subscribe to push notifications
             pushSubscription = await registration.pushManager.subscribe({
               userVisibleOnly: true,
               applicationServerKey: urlBase64ToUint8Array('BJo1BD-PijqyL2M0xNwy0xvOfFurS2d2vxG7LK78OtqJDgoogUuQbPp-iJ6QpuQNqFf5ljXaUmoPjZwNC2DlGSY')
             });
+          } else {
+            console.log('Existing subscription found, verifying validity...');
+            // Check if subscription is still valid by testing it
+            try {
+              // Try to get the keys - if this fails, subscription is invalid
+              const p256dh = pushSubscription.getKey('p256dh');
+              const auth = pushSubscription.getKey('auth');
+              
+              if (!p256dh || !auth) {
+                throw new Error('Invalid subscription keys');
+              }
+              
+              console.log('Subscription is valid');
+            } catch (validationError) {
+              console.log('Subscription invalid, creating new one:', validationError.message);
+              // Unsubscribe old subscription
+              await pushSubscription.unsubscribe();
+              
+              // Create new subscription
+              pushSubscription = await registration.pushManager.subscribe({
+                userVisibleOnly: true,
+                applicationServerKey: urlBase64ToUint8Array('BJo1BD-PijqyL2M0xNwy0xvOfFurS2d2vxG7LK78OtqJDgoogUuQbPp-iJ6QpuQNqFf5ljXaUmoPjZwNC2DlGSY')
+              });
+            }
           }
           
           console.log('Push subscription:', pushSubscription);
@@ -532,6 +557,47 @@ async function setupPushNotifications() {
     console.log('Notification permission error:', err);
   }
 }
+
+// Periodically refresh push subscription to prevent expiration
+async function refreshPushSubscription() {
+  if (!uid) return;
+  
+  try {
+    const registration = await navigator.serviceWorker.ready;
+    const currentSubscription = await registration.pushManager.getSubscription();
+    
+    if (currentSubscription) {
+      // Unsubscribe and resubscribe to get a fresh subscription
+      await currentSubscription.unsubscribe();
+      console.log('Refreshing push subscription...');
+      
+      const newSubscription = await registration.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array('BJo1BD-PijqyL2M0xNwy0xvOfFurS2d2vxG7LK78OtqJDgoogUuQbPp-iJ6QpuQNqFf5ljXaUmoPjZwNC2DlGSY')
+      });
+      
+      // Update in Firebase
+      const subscriptionRef = ref(realtimedb, `pushSubscriptions/${uid}`);
+      await set(subscriptionRef, {
+        endpoint: newSubscription.endpoint,
+        keys: {
+          p256dh: arrayBufferToBase64(newSubscription.getKey('p256dh')),
+          auth: arrayBufferToBase64(newSubscription.getKey('auth'))
+        },
+        userEmail: email,
+        lastRefreshed: Date.now()
+      });
+      
+      pushSubscription = newSubscription;
+      console.log('Push subscription refreshed successfully');
+    }
+  } catch (error) {
+    console.log('Error refreshing push subscription:', error);
+  }
+}
+
+// Refresh subscription every 24 hours to prevent expiration
+setInterval(refreshPushSubscription, 24 * 60 * 60 * 1000);
 
 // Helper functions for push notifications
 function urlBase64ToUint8Array(base64String) {

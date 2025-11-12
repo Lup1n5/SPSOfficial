@@ -26,21 +26,21 @@ self.addEventListener('push', (event) => {
       notificationData = {
         title: 'New Message',
         body: event.data.text() || 'You have a new message',
-        icon: '/icons/192.png',
-        badge: '/icons/192.png'
+        icon: './icons/192.png',
+        badge: './icons/192.png'
       };
     }
   }
 
   const options = {
     body: notificationData.body || 'New message in SPS',
-    icon: notificationData.icon || '/icons/192.png',
-    badge: notificationData.badge || '/icons/192.png',
+    icon: notificationData.icon || './icons/192.png',
+    badge: notificationData.badge || './icons/192.png',
     vibrate: [100, 50, 100],
     data: {
       dateOfArrival: Date.now(),
       primaryKey: 1,
-      url: notificationData.url || '/',
+      url: notificationData.url || './',
       sender: notificationData.sender || 'Unknown',
       messageText: notificationData.messageText || ''
     },
@@ -77,7 +77,7 @@ self.addEventListener('notificationclick', (event) => {
       }
       // If app is not open, open it
       if (clients.openWindow) {
-        return clients.openWindow(event.notification.data.url || '/');
+        return clients.openWindow(event.notification.data.url || './');
       }
     })
   );

@@ -39,10 +39,23 @@ db.ref('notificationQueue').on('child_added', async (snapshot) => {
       .map(async ([uid, subscription]) => {
         try {
           await webpush.sendNotification(subscription, JSON.stringify(payload));
+          console.log('✓ Notification sent successfully to', uid);
         } catch (error) {
-          console.error('Error sending notification to', uid, ':', error.message || error);
-          // If subscription is gone or invalid, remove it
-          if (error.statusCode === 404 || error.statusCode === 410) {
+          console.error('✗ Error sending notification to', uid, ':', error.message || error);
+          
+          // Handle various error conditions that indicate invalid subscriptions
+          const shouldRemoveSubscription = 
+            error.statusCode === 404 ||  // Not Found
+            error.statusCode === 410 ||  // Gone
+            error.statusCode === 413 ||  // Payload Too Large
+            error.statusCode === 400 ||  // Bad Request
+            (error.body && error.body.includes('expired')) ||
+            (error.body && error.body.includes('invalid')) ||
+            error.message.includes('expired') ||
+            error.message.includes('invalid');
+
+          if (shouldRemoveSubscription) {
+            console.log(`Removing invalid subscription for user ${uid}`);
             await db.ref(`pushSubscriptions/${uid}`).remove();
           }
         }
