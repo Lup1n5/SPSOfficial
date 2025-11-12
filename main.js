@@ -477,10 +477,44 @@ document.addEventListener('visibilitychange', () => {
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', async () => {
     try {
-      const registration = await navigator.serviceWorker.register('./sw.js');
-      console.log('ServiceWorker registered: ', registration);
+      console.log('Registering service worker for iOS PWA...');
+      
+      // iOS PWA specific registration options
+      const registrationOptions = {
+        scope: './' // Ensure proper scope for iOS PWA
+      };
+      
+      const registration = await navigator.serviceWorker.register('./sw.js', registrationOptions);
+      console.log('ServiceWorker registered successfully:', {
+        scope: registration.scope,
+        installing: registration.installing,
+        waiting: registration.waiting,
+        active: registration.active
+      });
+      
+      // Handle service worker updates (important for iOS PWA)
+      registration.addEventListener('updatefound', () => {
+        console.log('Service worker update found');
+        const newWorker = registration.installing;
+        if (newWorker) {
+          newWorker.addEventListener('statechange', () => {
+            console.log('Service worker state changed:', newWorker.state);
+            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+              console.log('New service worker installed, refreshing...');
+              // Optionally refresh the page to use new service worker
+              // window.location.reload();
+            }
+          });
+        }
+      });
+      
     } catch (error) {
-      console.log('ServiceWorker registration failed: ', error);
+      console.log('ServiceWorker registration failed:', error);
+      console.log('Error details:', {
+        name: error.name,
+        message: error.message,
+        stack: error.stack
+      });
     }
   });
 }
@@ -488,69 +522,127 @@ if ('serviceWorker' in navigator) {
 // Setup push notifications for iOS PWA
 async function setupPushNotifications() {
   try {
+    // Check if we're in a PWA context (iOS specific)
+    const isIOSPWA = window.navigator.standalone === true || 
+                     window.matchMedia('(display-mode: standalone)').matches ||
+                     window.matchMedia('(display-mode: fullscreen)').matches;
+    
+    console.log('iOS PWA detected:', isIOSPWA);
+    console.log('User Agent:', navigator.userAgent);
+    
     const permission = await Notification.requestPermission();
+    console.log('Notification permission:', permission);
     
     if (permission === 'granted') {
       console.log('Notification permission granted');
       
-      // Register service worker and get push subscription
-      const registration = await navigator.serviceWorker.ready;
+      // Wait for service worker to be ready with timeout
+      const registration = await Promise.race([
+        navigator.serviceWorker.ready,
+        new Promise((_, reject) => setTimeout(() => reject(new Error('Service worker timeout')), 10000))
+      ]);
       
-      if ('PushManager' in window) {
-        try {
-          // Check if already subscribed
-          pushSubscription = await registration.pushManager.getSubscription();
-          
-          if (!pushSubscription) {
-            console.log('No existing subscription, creating new one...');
-            // Subscribe to push notifications
-            pushSubscription = await registration.pushManager.subscribe({
-              userVisibleOnly: true,
-              applicationServerKey: urlBase64ToUint8Array('BJo1BD-PijqyL2M0xNwy0xvOfFurS2d2vxG7LK78OtqJDgoogUuQbPp-iJ6QpuQNqFf5ljXaUmoPjZwNC2DlGSY')
-            });
-          } else {
-            console.log('Existing subscription found, verifying validity...');
-            // Check if subscription is still valid by testing it
-            try {
-              // Try to get the keys - if this fails, subscription is invalid
-              const p256dh = pushSubscription.getKey('p256dh');
-              const auth = pushSubscription.getKey('auth');
-              
-              if (!p256dh || !auth) {
-                throw new Error('Invalid subscription keys');
-              }
-              
-              console.log('Subscription is valid');
-            } catch (validationError) {
-              console.log('Subscription invalid, creating new one:', validationError.message);
-              // Unsubscribe old subscription
-              await pushSubscription.unsubscribe();
-              
-              // Create new subscription
-              pushSubscription = await registration.pushManager.subscribe({
-                userVisibleOnly: true,
-                applicationServerKey: urlBase64ToUint8Array('BJo1BD-PijqyL2M0xNwy0xvOfFurS2d2vxG7LK78OtqJDgoogUuQbPp-iJ6QpuQNqFf5ljXaUmoPjZwNC2DlGSY')
-              });
+      // Check for push manager support
+      if (!('PushManager' in window)) {
+        console.log('Push messaging is not supported');
+        return;
+      }
+      
+      if (!registration.pushManager) {
+        console.log('Push manager unavailable in service worker registration');
+        return;
+      }
+      
+      try {
+        console.log('Setting up push subscription...');
+        
+        // Check if already subscribed
+        pushSubscription = await registration.pushManager.getSubscription();
+        console.log('Existing subscription:', pushSubscription ? 'Found' : 'None');
+        
+        if (pushSubscription) {
+          console.log('Validating existing subscription...');
+          // Validate existing subscription
+          try {
+            const endpoint = pushSubscription.endpoint;
+            const p256dh = pushSubscription.getKey('p256dh');
+            const auth = pushSubscription.getKey('auth');
+            
+            if (!endpoint || !p256dh || !auth) {
+              throw new Error('Invalid subscription components');
             }
+            
+            // Check if subscription is expired (iOS specific check)
+            if (pushSubscription.expirationTime && pushSubscription.expirationTime < Date.now()) {
+              throw new Error('Subscription expired');
+            }
+            
+            console.log('Subscription validation passed');
+          } catch (validationError) {
+            console.log('Subscription validation failed:', validationError.message);
+            try {
+              await pushSubscription.unsubscribe();
+            } catch (unsubError) {
+              console.log('Error unsubscribing invalid subscription:', unsubError);
+            }
+            pushSubscription = null;
           }
-          
-          console.log('Push subscription:', pushSubscription);
-          
-          // Save subscription to Firebase
-          if (pushSubscription && uid) {
-            const subscriptionRef = ref(realtimedb, `pushSubscriptions/${uid}`);
-            await set(subscriptionRef, {
-              endpoint: pushSubscription.endpoint,
-              keys: {
-                p256dh: arrayBufferToBase64(pushSubscription.getKey('p256dh')),
-                auth: arrayBufferToBase64(pushSubscription.getKey('auth'))
-              },
-              userEmail: email
-            });
-          }
-        } catch (pushError) {
-          console.log('Push subscription failed:', pushError);
         }
+        
+        if (!pushSubscription) {
+          console.log('Creating new push subscription...');
+          
+          const subscribeOptions = {
+            userVisibleOnly: true,
+            applicationServerKey: urlBase64ToUint8Array('BJo1BD-PijqyL2M0xNwy0xvOfFurS2d2vxG7LK78OtqJDgoogUuQbPp-iJ6QpuQNqFf5ljXaUmoPjZwNC2DlGSY')
+          };
+          
+          // Add iOS-specific options
+          if (isIOSPWA) {
+            console.log('Adding iOS-specific subscription options');
+            // iOS PWA specific settings
+            subscribeOptions.userVisibleOnly = true;
+          }
+          
+          pushSubscription = await registration.pushManager.subscribe(subscribeOptions);
+          console.log('New subscription created successfully');
+        }
+          
+        console.log('Final push subscription:', pushSubscription);
+        
+        // Save subscription to Firebase with enhanced metadata
+        if (pushSubscription && uid) {
+          const subscriptionRef = ref(realtimedb, `pushSubscriptions/${uid}`);
+          
+          const subscriptionData = {
+            endpoint: pushSubscription.endpoint,
+            keys: {
+              p256dh: arrayBufferToBase64(pushSubscription.getKey('p256dh')),
+              auth: arrayBufferToBase64(pushSubscription.getKey('auth'))
+            },
+            userEmail: email,
+            userAgent: navigator.userAgent,
+            isIOSPWA: isIOSPWA,
+            created: Date.now(),
+            lastRefreshed: Date.now()
+          };
+          
+          // Add expiration time if available (iOS provides this)
+          if (pushSubscription.expirationTime) {
+            subscriptionData.expirationTime = pushSubscription.expirationTime;
+          }
+          
+          await set(subscriptionRef, subscriptionData);
+          console.log('Subscription saved to Firebase');
+        }
+        
+      } catch (pushError) {
+        console.log('Push subscription setup failed:', pushError);
+        console.log('Error details:', {
+          name: pushError.name,
+          message: pushError.message,
+          stack: pushError.stack
+        });
       }
     }
   } catch (err) {
@@ -558,46 +650,90 @@ async function setupPushNotifications() {
   }
 }
 
-// Periodically refresh push subscription to prevent expiration
+// Periodically refresh push subscription to prevent expiration (iOS optimized)
 async function refreshPushSubscription() {
-  if (!uid) return;
+  if (!uid) {
+    console.log('No user ID available for subscription refresh');
+    return;
+  }
   
   try {
+    console.log('Starting push subscription refresh...');
+    
     const registration = await navigator.serviceWorker.ready;
     const currentSubscription = await registration.pushManager.getSubscription();
     
     if (currentSubscription) {
+      // Check if subscription is close to expiring (iOS specific)
+      const isExpiring = currentSubscription.expirationTime && 
+                        currentSubscription.expirationTime < (Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+      
+      if (isExpiring) {
+        console.log('Subscription is expiring soon, creating new one...');
+      } else {
+        console.log('Subscription still valid, updating metadata only...');
+        // Just update the timestamp without recreating subscription
+        const subscriptionRef = ref(realtimedb, `pushSubscriptions/${uid}`);
+        const currentData = await get(subscriptionRef);
+        if (currentData.exists()) {
+          await set(subscriptionRef, {
+            ...currentData.val(),
+            lastRefreshed: Date.now()
+          });
+        }
+        return;
+      }
+      
       // Unsubscribe and resubscribe to get a fresh subscription
       await currentSubscription.unsubscribe();
-      console.log('Refreshing push subscription...');
+      console.log('Old subscription unsubscribed');
       
       const newSubscription = await registration.pushManager.subscribe({
         userVisibleOnly: true,
         applicationServerKey: urlBase64ToUint8Array('BJo1BD-PijqyL2M0xNwy0xvOfFurS2d2vxG7LK78OtqJDgoogUuQbPp-iJ6QpuQNqFf5ljXaUmoPjZwNC2DlGSY')
       });
       
-      // Update in Firebase
+      // Update in Firebase with full metadata
       const subscriptionRef = ref(realtimedb, `pushSubscriptions/${uid}`);
-      await set(subscriptionRef, {
+      const subscriptionData = {
         endpoint: newSubscription.endpoint,
         keys: {
           p256dh: arrayBufferToBase64(newSubscription.getKey('p256dh')),
           auth: arrayBufferToBase64(newSubscription.getKey('auth'))
         },
         userEmail: email,
-        lastRefreshed: Date.now()
-      });
+        userAgent: navigator.userAgent,
+        lastRefreshed: Date.now(),
+        refreshReason: isExpiring ? 'expiration' : 'periodic'
+      };
+      
+      if (newSubscription.expirationTime) {
+        subscriptionData.expirationTime = newSubscription.expirationTime;
+      }
+      
+      await set(subscriptionRef, subscriptionData);
       
       pushSubscription = newSubscription;
       console.log('Push subscription refreshed successfully');
+    } else {
+      console.log('No existing subscription found during refresh');
     }
   } catch (error) {
     console.log('Error refreshing push subscription:', error);
+    console.log('Will retry setup on next app launch');
   }
 }
 
-// Refresh subscription every 24 hours to prevent expiration
-setInterval(refreshPushSubscription, 24 * 60 * 60 * 1000);
+// Refresh subscription every 12 hours (more frequent for iOS PWA reliability)
+setInterval(refreshPushSubscription, 12 * 60 * 60 * 1000);
+
+// Also refresh when app becomes visible (iOS PWA best practice)
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden && pushSubscription) {
+    // Delay to ensure app is fully active
+    setTimeout(refreshPushSubscription, 5000);
+  }
+});
 
 // Helper functions for push notifications
 function urlBase64ToUint8Array(base64String) {
