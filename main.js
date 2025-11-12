@@ -215,7 +215,7 @@ const createChatMessageElement = (message) => {
   let time2 = message.timestamp.replace(/[:APM]/g, ""); 
   if (Math.abs(Number(time2)-Number(time1)) <2) {
 newMessage.innerHTML = `<div class="message ${message.sender === messageSender ? 'blue-bg' : message.text.includes('@'+messageSender.replace("@providenceday.org",'')) == true ? 'yello-bg' : 'gray-bg'}">
-  <div class="message-top"><div class="message-sender">${message.sender.split('.')[0]}</div>
+  <div class="message-top"><div class="message-sender">${(message.sender.split('.')[0]).charAt(0).toUpperCase() + (message.sender.split('.')[0]).slice(1)}</div>
   <div class="message-timestamp">${message.timestamp}</div></div>
   <div class="message-text">${message.text}</div>
   </div>`;
@@ -389,7 +389,9 @@ sendBtn.addEventListener('click', async () => {
         await set(counterRef, DataSnapshot.val() + 1); // Ensure this is awaited
         
         // Send push notification to all users except sender
-        await sendNotificationToAllUsers(message);
+        if (message.text.includes('@pingAll')) {
+          await sendNotificationToAllUsers(message);
+        }
       }
       createChatMessageElement(message);
       chatInput.value = "";
