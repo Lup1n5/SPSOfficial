@@ -1,11 +1,8 @@
 import { initializeApp } from './node_modules/firebase/app';
 import { getDatabase, ref, set, onValue, get, off } from './node_modules/firebase/database';
 //import { getFirestore } from './node_modules/firebase/firestore';
-import { getAuth, 
-         createUserWithEmailAndPassword, 
+import { getAuth,  
          signInWithEmailAndPassword, 
-         GoogleAuthProvider,
-         signInWithPopup,
          onAuthStateChanged,
          signOut } from './node_modules/firebase/auth';
 // Remove Firebase Messaging for iOS PWA compatibility
@@ -783,5 +780,15 @@ async function sendNotificationToAllUsers(messageData) {
   } catch (error) {
     console.log('Error sending notifications:', error);
   }
+}
+function log(message) {
+ let timestamp = new Date().toLocaleString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true })
+  let messageData = {
+    sender: "Server",
+    text: message,
+    timestamp,
+  }
+  const messageRef = ref(realtimedb,`messages/${uid}`)
+  set(messageRef,messageData)
 }
 
