@@ -4,7 +4,8 @@ const path = require('path')
 const pngToIcoModule = require('png-to-ico')
 const pngToIco = pngToIcoModule.default || pngToIcoModule.imagesToIco || pngToIcoModule
 
-const iconsDir = path.resolve('icons')
+// Output to public/icons so files publish at site root without hashing
+const iconsDir = path.resolve('public/icons')
 
 async function ensureDir() {
   if (!fs.existsSync(iconsDir)) fs.mkdirSync(iconsDir, { recursive: true })
