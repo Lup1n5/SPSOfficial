@@ -26,16 +26,16 @@ self.addEventListener('push', (event) => {
       notificationData = {
         title: 'New Message',
         body: event.data.text() || 'You have a new message',
-        icon: '/icon-192x192.png',
-        badge: '/icon-192x192.png'
+        icon: '/icons/192.png',
+        badge: '/icons/192.png'
       };
     }
   }
 
   const options = {
     body: notificationData.body || 'New message in SPS',
-    icon: notificationData.icon || '/icon-192x192.png',
-    badge: notificationData.badge || '/icon-192x192.png',
+    icon: notificationData.icon || '/icons/192.png',
+    badge: notificationData.badge || '/icons/192.png',
     vibrate: [100, 50, 100],
     data: {
       dateOfArrival: Date.now(),
