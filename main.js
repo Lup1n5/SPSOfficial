@@ -214,7 +214,7 @@ const createChatMessageElement = (message) => {
   let time1 = timestamp.replace(/[:APM]/g, ""); 
   let time2 = message.timestamp.replace(/[:APM]/g, ""); 
   if (Math.abs(Number(time2)-Number(time1)) <2) {
-newMessage.innerHTML = `<div class="message ${message.sender === messageSender ? 'blue-bg' : message.text.includes('@'+messageSender.replace("@providenceday.org",'')) == true ? 'yello-bg' : 'gray-bg'}">
+newMessage.innerHTML = `<div class="message ${message.text.includes('@'+messageSender.replace("@providenceday.org",'')) == true || message.text.includes('@everyone') ? 'yello-bg' : 'gray-bg'}">
   <div class="message-top"><div class="message-sender">${(message.sender.split('.')[0]).charAt(0).toUpperCase() + (message.sender.split('.')[0]).slice(1)}</div>
   <div class="message-timestamp">${message.timestamp}</div></div>
   <div class="message-text">${message.text}</div>
@@ -388,10 +388,19 @@ sendBtn.addEventListener('click', async () => {
         const DataSnapshot = await get(counterRef); // Await get here
         await set(counterRef, DataSnapshot.val() + 1); // Ensure this is awaited
         
-        // Send push notification to all users except sender
-        if (message.text.includes('@pingAll')) {
-          await sendNotificationToAllUsers(message);
+        // Send push notification to all target users except sender
+        let targets = [];
+        if (message.text.includes('@everyone')) {
+          await sendNotification(message, "*");
+        } else {
+        Object.entries(userList).forEach(([key, value]) => {
+        if (message.text.includes('@'+value.split('@')[0])) {
+          targets.push(key);
         }
+        });
+        if (targets.length !== 0) {
+        await sendNotification(message, targets);}
+      }
       }
       createChatMessageElement(message);
       chatInput.value = "";
@@ -441,7 +450,7 @@ sendBtn.addEventListener('click', async () => {
       })
         })
     }, 1000);
-  })
+  })  
    
   chatInput.value = ""
 }
@@ -759,8 +768,9 @@ function arrayBufferToBase64(buffer) {
 
 // Send push notification to all users except sender
 // Security change: do NOT include subscriptions; backend will fetch them
-async function sendNotificationToAllUsers(messageData) {
+async function sendNotification(messageData, targets) {
   try {
+    
     // Create notification payload (no subscription data)
     const notificationPayload = {
       title: 'New Message in SPS',
@@ -769,12 +779,13 @@ async function sendNotificationToAllUsers(messageData) {
       messageText: messageData.text,
       timestamp: messageData.timestamp
     };
-
+    console.log(targets);
     // Store notification request in Firebase for backend processing
     const notificationRef = ref(realtimedb, `notificationQueue/${Date.now()}`);
     await set(notificationRef, {
       payload: notificationPayload,
       senderUid: uid,
+      targetUids: targets,
       timestamp: Date.now()
     });
 
