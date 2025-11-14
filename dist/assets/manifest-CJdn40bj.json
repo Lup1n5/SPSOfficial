@@ -9,11 +9,7 @@
       "orientation": "portrait-primary",
       "icons": [
         {
-<<<<<<<< HEAD:dist/assets/manifest-BL1A_tfL.json
           "src": "../icons/apple-touch-icon.png",
-========
-          "src": "../icons/192.png",
->>>>>>>> 72195a467f76cd9fe50bec732e2447d89e9f0ff0:dist/assets/manifest-HVTgH_QV.json
           "sizes": "192x192",
           "type": "image/png",
           "purpose": "any maskable"
