@@ -1,9 +1,9 @@
-    {
+{
       "name": "Stewflanic Permission System",
       "short_name": "SPS",
       "display": "standalone",
-      "start_url": "./",
-      "scope": "./",
+      "start_url": "/SPSOfficial/",
+      "scope": "/SPSOfficial/",
       "theme_color": "#000000",
       "background_color": "#ffffff",
       "orientation": "portrait-primary",
@@ -15,7 +15,7 @@
           "purpose": "any maskable"
         },
         {
-          "src": "icons/512.png",
+          "src": "../icons/512.png",
           "sizes": "512x512",
           "type": "image/png",
           "purpose": "any maskable"
