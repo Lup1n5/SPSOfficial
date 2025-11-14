@@ -16,7 +16,7 @@ const firebaseConfig = {
   messagingSenderId: "1035943934052",
   appId: "1:1035943934052:web:d3b8c6802c9a99ec81c771"
 };
-
+const version = '1.0.0';
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const auth = getAuth();
@@ -38,6 +38,8 @@ const chatMessages = document.querySelector('.chat-messages')
 const chatInputForm = document.querySelector('.chat-input-form')
 const chatInput = document.querySelector('.chat-input')
 const sendBtn = document.querySelector(".send-button")
+const errorScreen = document.querySelector('.error-screen')
+
 var messageSender = ''
 var email = ""
 let uid = '';
@@ -68,6 +70,13 @@ function logout() {
 const checkAdmPings = async () => { // Ensure proper case handling
   const adminPingsRef = ref(realtimedb, `admpings/${uid}`);
   const snapshot = await get(adminPingsRef);
+  const versionRef = ref(realtimedb, 'version');
+    get(versionRef).then((snapshot) => {
+    if(snapshot.val() !== version) {
+      alert('THIS IS AN INCOMPATIBLE VERSIO! PLEASE REMOVE AND RE-ADD SPS TO YOUR HOMESCREEN!');
+      signOut(auth);
+      return false;
+    }})
   switch (snapshot.val()) {
     case 'mute':
     case 'muted':
@@ -80,8 +89,10 @@ const checkAdmPings = async () => { // Ensure proper case handling
     default:
       return false;
   }
+  
 };
 onAuthStateChanged(auth, async (user) => { // Await checkAdmPings here
+    
     if (user) {
       uid = user.uid;
       email = user.email;
