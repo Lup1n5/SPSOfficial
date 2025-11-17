@@ -251,7 +251,7 @@ sendBtn.addEventListener('click', async () => {
     return;
   }
   let isAdmin = await checkForPerms();
-  if (isAdmin && chatInput.value[0] == '/' && chatInput.value != "/tab") {
+  if (isAdmin && chatInput.value[0] == '/' && chatInput.value != "/tab" && chatInput.value != "/spin" && chatInput.value != "/help") {
     let commandParts = chatInput.value.replace('/', '').split(' '); // Split command into parts
     let target = null;
     if (commandParts[1]) {
@@ -369,7 +369,7 @@ sendBtn.addEventListener('click', async () => {
         createChatMessageElement(sendAsMessage);
         break;
 
-      case 'help':
+      case 'helpp':
         let helpMessage = {
           sender: "Server",
           text: `Available commands: /tab, /mute [user], /unmute [user], /kick [user], /sendAs [user] [message], /help`,
@@ -384,39 +384,7 @@ sendBtn.addEventListener('click', async () => {
     }
     chatInput.value = "";
   }
-  if (chatInput.value != "/tab") {
-    let timestamp = new Date().toLocaleString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true });
-    let message = {
-      sender: messageSender,
-      text: chatInput.value,
-      timestamp,
-    };
-    if (message.text) {
-      const messageRef = ref(realtimedb, `messages/${uid}`);
-      if (!(await checkAdmPings())) { // Await checkAdmPings here
-        await set(messageRef, message); // Ensure this is awaited
-        const counterRef = ref(realtimedb, 'messageCount');
-        const DataSnapshot = await get(counterRef); // Await get here
-        await set(counterRef, DataSnapshot.val() + 1); // Ensure this is awaited
-        
-        // Send push notification to all target users except sender
-        let targets = [];
-        if (message.text.includes('@everyone')) {
-          await sendNotification(message, "*");
-        } else {
-        Object.entries(userList).forEach(([key, value]) => {
-        if (message.text.includes('@'+value.split('@')[0])) {
-          targets.push(key);
-        }
-        });
-        if (targets.length !== 0) {
-        await sendNotification(message, targets);}
-      }
-      }
-      createChatMessageElement(message);
-      chatInput.value = "";
-    }
-  } else {
+  if (chatInput.value === "/tab") {
 
   const refage = ref(realtimedb, `pings`)
 
@@ -462,9 +430,56 @@ sendBtn.addEventListener('click', async () => {
         })
     }, 1000);
   })  
+
+  } else if (chatInput.value === "/spin") {
+
+  window.location.href = 'SPiN.html';
+
+  } else if (chatInput.value === "/help") {
+    let helpMessage = {
+      sender: "Server",
+      text: `Help: To ping someone, add @firstname.lastname to your message, or @everyone to ping everyone. To connect to SPiN, type /spin. To see who is online, type /tab.`,
+      timestamp: new Date().toLocaleString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true }),
+    };
+    createChatMessageElement(helpMessage);
+  }
+   else{
+
+    let timestamp = new Date().toLocaleString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true });
+    let message = {
+      sender: messageSender,
+      text: chatInput.value,
+      timestamp,
+    };
+    if (message.text) {
+      const messageRef = ref(realtimedb, `messages/${uid}`);
+      if (!(await checkAdmPings())) { // Await checkAdmPings here
+        await set(messageRef, message); // Ensure this is awaited
+        const counterRef = ref(realtimedb, 'messageCount');
+        const DataSnapshot = await get(counterRef); // Await get here
+        await set(counterRef, DataSnapshot.val() + 1); // Ensure this is awaited
+        
+        // Send push notification to all target users except sender
+        let targets = [];
+        if (message.text.includes('@everyone')) {
+          await sendNotification(message, "*");
+        } else {
+        Object.entries(userList).forEach(([key, value]) => {
+        if (message.text.includes('@'+value.split('@')[0])) {
+          targets.push(key);
+        }
+        });
+        if (targets.length !== 0) {
+        await sendNotification(message, targets);}
+      }
+      }
+      createChatMessageElement(message);
+      chatInput.value = "";
+    }
+  } 
    
   chatInput.value = ""
-}
+
 
 })
 chatInput.addEventListener("keypress", function(event) {
@@ -476,13 +491,12 @@ chatInput.addEventListener("keypress", function(event) {
 const hiddenForm = document.querySelector('.hidden-form');
 
 // Add a submit event listener to the form
-hiddenForm.addEventListener('submit', (event) => {
-  event.preventDefault();
-});
-spinBtn.addEventListener('click', () => {
-  sessionStorage.setItem('ishidden', hiddenToggle.checked);
-  window.location.href = 'SPiN.html';
-})
+// hiddenForm.addEventListener('submit', (event) => {
+//   event.preventDefault();
+// });
+// spinBtn.addEventListener('click', () => {
+  
+// })
 
 
 

@@ -4,12 +4,35 @@
   padding: 0;
   box-sizing: border-box;
 }
+
+:root {
+  --bg: #0b0f1a;
+  --bg-gradient: radial-gradient(60% 80% at 20% 10%, rgba(0, 229, 255, 0.08) 0%, rgba(0, 229, 255, 0) 60%),
+                  radial-gradient(50% 60% at 80% 20%, rgba(168, 85, 247, 0.08) 0%, rgba(168, 85, 247, 0) 60%),
+                  linear-gradient(180deg, #0b0f1a 0%, #070a12 100%);
+  --surface: #0f1629;
+  --surface-2: #0b1222;
+  --text: #e6f1ff;
+  --muted: #9fb3c8;
+  --primary: #00e5ff;
+  --primary-2: #00b3ff;
+  --danger: #ff4d4d;
+  --warning: #ff7b00;
+  --shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+  --glass: rgba(255, 255, 255, 0.06);
+  --glass-border: 1px solid rgba(255, 255, 255, 0.08);
+}
 .error-screen {
   display: none;
 }
+html, body {
+  height: 100%;
+}
+
 body {
   font-family: Arial, Helvetica, sans-serif;
-  background-color: #f9f9f9;
+  color: var(--text);
+  background: var(--bg-gradient);
 }
 
 /* Main Container */
@@ -17,18 +40,24 @@ main {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 20px;
+  padding: 16px;
+  min-height: 100svh;
 }
 
 .content-container {
-  width: 80%;
+  width: 100%;
+  max-width: 1200px;
+  min-height: calc(100svh - 32px);
   display: flex;
   justify-content: center;
-  align-items: center;
-  background-color: #fff;
+  align-items: stretch;
+  background: var(--glass);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   padding: 20px;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-  border-radius: 8px;
+  border-radius: 16px;
+  border: var(--glass-border);
+  box-shadow: var(--shadow);
 }
 
 section {
@@ -38,7 +67,7 @@ section {
 h1 {
   margin: 2rem 0;
   font-size: 2rem;
-  color: #333;
+  color: var(--text);
 }
 
 /* View States */
@@ -60,14 +89,15 @@ h1 {
 }
 
 .form-container {
-  width: 300px;
+  width: 320px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  background-color: #fff;
+  background: var(--surface);
   padding: 20px;
-  border-radius: 8px;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+  border: var(--glass-border);
+  box-shadow: var(--shadow);
 }
 
 /* Toggle Container */
@@ -88,7 +118,7 @@ h1 {
   padding: 10px;
   font-size: 1.1rem;
   cursor: pointer;
-  border: 1px solid #ddd;
+  border: var(--glass-border);
 }
 
 #signin-form {
@@ -99,8 +129,8 @@ h1 {
 
 .auth-toggle-signin {
   border-radius: 10px 0 0 0;
-  background-color: blue;
-  color: white;
+  background: linear-gradient(135deg, rgba(0, 179, 255, 0.2), rgba(0, 229, 255, 0.05));
+  color: var(--text);
 }
 
 
@@ -120,6 +150,7 @@ h1 {
 .login-form h2 {
   text-align: center;
   margin-bottom: 20px;
+  color: var(--text);
 }
 
 /* Input Group */
@@ -129,37 +160,48 @@ h1 {
 }
 
 .input-group input {
-  padding: 10px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
+  padding: 12px;
+  border: 1px solid rgba(255,255,255,0.08);
+  background: var(--surface-2);
+  color: var(--text);
+  border-radius: 8px;
   font-size: 1rem;
   width: 100%;
+  outline: none;
+}
+
+.input-group input:focus {
+  border-color: rgba(0, 229, 255, 0.6);
+  box-shadow: 0 0 0 3px rgba(0, 229, 255, 0.15);
 }
 
 /* Buttons */
 .login-btn, .google-login-btn {
   width: 100%;
-  padding: 10px;
-  font-size: 1.2rem;
+  padding: 12px;
+  font-size: 1.1rem;
   text-align: center;
   cursor: pointer;
   border: none;
-  border-radius: 4px;
-  transition: transform 0.2s ease;
+  border-radius: 10px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
 }
 
 .login-btn {
-  background-color: #007bff;
-  color: white;
+  background: linear-gradient(135deg, var(--primary), var(--primary-2));
+  color: #00121a;
+  font-weight: 700;
 }
 
 .login-btn:hover {
-  transform: scale(1.05);
+  transform: translateY(-1px);
+  box-shadow: 0 0 20px rgba(0, 229, 255, 0.35), 0 0 40px rgba(0, 179, 255, 0.25);
 }
 
 .google-login-btn {
-  background-color: #fff;
-  border: 1px solid #ddd;
+  background: var(--surface-2);
+  border: var(--glass-border);
+  color: var(--text);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -168,7 +210,7 @@ h1 {
 }
 
 .google-login-btn:hover {
-  transform: scale(1.05);
+  transform: translateY(-1px);
 }
 
 .google-btn-logo {
@@ -180,12 +222,12 @@ h1 {
   margin: 1em 0;
   text-align: center;
   font-size: 0.875em;
-  color: #333;
+  color: var(--muted);
 }
 
 /* Error Message */
 .error-msg {
-  color: red;
+  color: #ff6b6b;
   font-size: 0.875rem;
   text-align: center;
 }
@@ -193,7 +235,7 @@ h1 {
 /* Greeting */
 .greeting {
   text-align: center;
-  
+  color: var(--text);
   font-size: 1.2rem;
 }
 
@@ -217,40 +259,44 @@ h1 {
   width: 85%;
   padding: 0.5rem;
   font-size: 1.1rem;
-  border: 1px solid #ddd;
-  border-radius: 4px;
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 8px;
+  background: var(--surface-2);
+  color: var(--text);
 }
 
 .msg-submit-btn {
   width: 15%;
-  background-color: blue;
-  color: white;
+  background: linear-gradient(135deg, var(--primary), var(--primary-2));
+  color: #00121a;
   border: none;
   cursor: pointer;
-  border-radius: 4px;
-  font-size: 1.3rem;
-  transition: background-color 0.2s;
+  border-radius: 10px;
+  font-size: 1.1rem;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .msg-submit-btn:hover {
-  background-color: darkblue;
+  transform: translateY(-1px);
+  box-shadow: 0 0 20px rgba(0, 229, 255, 0.35), 0 0 40px rgba(0, 179, 255, 0.25);
 }
 
 /* Message List Container */
 .msg-list-container {
   margin-top: 2rem;
   width: 100%;
-  background-color: #f8f9fa;
+  background: var(--surface);
   padding: 1rem;
-  border-radius: 8px;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+  border: var(--glass-border);
+  box-shadow: var(--shadow);
 }
 
 .msg-list-container h3 {
   text-align: center;
   margin-bottom: 0.3rem;
   font-size: 1.5rem;
-  color: #333;
+  color: var(--text);
 }
 
 .msg-list-container hr {
@@ -267,24 +313,24 @@ h1 {
   font-weight: bold;
 }
 
-.user-msg {
-}
+
 
 /* Logout Button */
 .logout-btn {
   margin: 10px 0 20px 0;
   padding: 10px 20px;
   font-size: 16px;
-  color: white;
-  background-color: #ff4d4d;
+  color: #1a0000;
+  background: linear-gradient(135deg, #ff7b7b, var(--danger));
   border: none;
-  border-radius: 5px;
+  border-radius: 10px;
   cursor: pointer;
-  transition: background-color 0.3s;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .logout-btn:hover {
-  background-color: #e60000;
+  transform: translateY(-1px);
+  box-shadow: 0 0 20px rgba(255, 77, 77, 0.35), 0 0 40px rgba(255, 77, 77, 0.2);
 }
 
 /* Top Section */
@@ -293,7 +339,8 @@ h1 {
   justify-content: space-between;
   align-items: center;
   width: 100%;
-  padding: 0px 0;
+  padding: 0 0 8px 0;
+  gap: 12px;
 }
 .hidden-form {
   display:grid;
@@ -305,33 +352,40 @@ h1 {
 #spin-button {
   padding: 10px 20px;
   font-size: 16px;
-  color: white;
-  background-color: #ff7b00;
+  color: #1a0b00;
+  background: linear-gradient(135deg, #ffb366, var(--warning));
   border: none;
-  border-radius: 5px;
+  border-radius: 10px;
   cursor: pointer;
-  transition: background-color 0.3s;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 .chat-container {
-  background: #15202b;
-  border-radius: 0.5em;
-  padding: 0.5em 1.25em; 
-  margin: auto;
-  max-width: 150em;
-  max-height: 47em;
-  box-shadow: 0 0 1.25em 0.5em #c3c3c333;
-  
+  background: var(--surface);
+  border-radius: 16px;
+  padding: 0.75em 1em;
+  margin: 0;
+  width: 100%;
+  /* Fixed height as a percentage of the viewport */
+  height: 80svh;
+  max-width: none;
+  max-height: 75svh;
+  border: var(--glass-border);
+  box-shadow: var(--shadow);
+  display: flex;
+  flex-direction: column;
+  /* Allow focus outlines / shadows to render fully */
+  overflow: visible;
 }
 
 
 
 .chat-messages {
-  height: 38em;
-  overflow-y: scroll;
+  flex: 1 1 auto;
+  min-height: 0; /* allow flexbox to shrink for overflow */
+  overflow-y: auto;
   display: flex;
   justify-content: flex-start;
   flex-direction: column;
-  overflow-y: scroll;
 }
 
 .chat-messages::-webkit-scrollbar {
@@ -339,40 +393,44 @@ h1 {
 }
 
 .message {
-  padding: 0em;
-  border-radius: 1em;
-  margin-bottom: 0.625em;
-  
-  color: #fff;
+  margin-bottom: 0.5em;
+  padding: 0.1em 0; /* no bubble padding; text-on-surface */
+  color: var(--text);
+}
+
+/* Optional subtle row highlight on hover (no persistent bubble) */
+.message:hover {
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 8px;
 }
 
 .message-sender {
-  font-weight: bold;
-  margin-bottom: 0.31em;
+  font-weight: 700;
+  color: var(--primary);
   display: inline;
+  margin-right: 0.5em;
 }
 
 .message-text {
-  font-size: 1em;
-  margin-bottom: 0.31em;
+  font-size: 1rem;
+  line-height: 1.4;
+  margin: 0.1em 0 0.2em;
+  white-space: pre-wrap;
   word-wrap: break-word;
+  word-break: break-word;
 }
 .message-top {
   display: inline-block;
 }
 .message-timestamp {
   font-size: 0.75em;
-  text-align: right;
+  color: var(--muted);
   display: inline;
+  vertical-align: baseline;
+  margin-left: 0.25em;
 }
 
-.blue-bg {
 
-}
-
-.gray-bg {
-
-}
 .yello-bg {
   background-color: #cce019;
 }
@@ -384,18 +442,24 @@ h1 {
 }
 
 .chat-input {
-  padding: 0.625em;
-  border: none;
-  border-radius: 0.5em;
-  background-color: #f5f5f5;
-  color: #333;
+  padding: 0.625em 0.875em;
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 10px;
+  background-color: var(--surface-2);
+  color: var(--text);
   font-size: 1em;
   flex-grow: 1;
 }
 
+.chat-input:focus {
+  border-color: rgba(0,229,255,0.6);
+  box-shadow: 0 0 0 3px rgba(0,229,255,0.15);
+  outline: none;
+}
+
 .send-button {
-  background-color: #1c9bef;
-  color: #fff;
+  background: linear-gradient(135deg, var(--primary), var(--primary-2));
+  color: #00121a;
   font-size: 1em;
   font-weight: bold;
 }
@@ -406,15 +470,45 @@ h1 {
 }
 .button {
   border: none;
-  padding: 0.625em;
-  border-radius: 0.5em;
+  padding: 0.625em 0.9em;
+  border-radius: 10px;
   cursor: pointer;
 }
 
 .button:hover {
-  filter: brightness(0.9);
+  filter: brightness(1.05);
+  box-shadow: 0 0 20px rgba(0, 229, 255, 0.25);
 }
 
 .button:active {
-  transform: translateY(2px);
+  transform: translateY(1px);
+}
+
+/* Responsive layout adjustments */
+@media (max-width: 1024px) {
+  .content-container {
+    padding: 16px;
+    border-radius: 14px;
+  }
+}
+
+@media (max-width: 768px) {
+  .content-container {
+    padding: 12px;
+    min-height: calc(100svh - 24px);
+    border-radius: 12px;
+  }
+
+  .form-container {
+    width: 100%;
+    max-width: 420px;
+  }
+
+  .top-section {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .msg-input-form { width: 100%; }
+  .msg-submit-btn { width: auto; padding: 0 1rem; }
 }
