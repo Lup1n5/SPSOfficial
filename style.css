@@ -432,7 +432,8 @@ h1 {
 
 
 .yello-bg {
-  background-color: #cce019;
+  background-color: #FFFF00C0;
+  border-radius: 8px;
 }
 .chat-input-form {
   display: flex;

@@ -217,20 +217,45 @@ passwordSignInForm.addEventListener("keypress", function(event) {
     loginBtn.click();
   }
 });
+function getLastMessageMeta() {
+  const container = document.querySelector('.chat-messages');
+  if (!container) return null;
 
+  // Prefer the last .message in case of other wrapper nodes
+  const all = container.querySelectorAll('.message');
+  const lastMessage = all[all.length - 1];
+  if (!lastMessage) return null;
+
+  const sender = lastMessage.querySelector('.message-sender')?.textContent.trim() ?? null;
+  const timestamp = lastMessage.querySelector('.message-timestamp')?.textContent.trim() ?? null;
+
+  return { sender, timestamp, element: lastMessage };
+}
 logoutBtn.addEventListener('click', () => {logout()})
 const createChatMessageElement = (message) => {
   const newMessage = document.createElement("div");
   let timestamp = new Date().toLocaleString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true })
   let time1 = timestamp.replace(/[:APM]/g, ""); 
   let time2 = message.timestamp.replace(/[:APM]/g, ""); 
-  if (Math.abs(Number(time2)-Number(time1)) <2) {
+  
+  
+
+  if (Math.abs(Number(time2)-Number(time1)) <20) {
 newMessage.innerHTML = `<div class="message ${message.text.includes('@'+messageSender.replace("@providenceday.org",'')) == true || message.text.includes('@everyone') ? 'yello-bg' : 'gray-bg'}">
   <div class="message-top"><div class="message-sender">${(message.sender.split('.')[0]).charAt(0).toUpperCase() + (message.sender.split('.')[0]).slice(1)}</div>
   <div class="message-timestamp">${message.timestamp}</div></div>
   <div class="message-text">${message.text}</div>
   </div>`;
-chatMessages.appendChild(newMessage);
+  const lastMeta = getLastMessageMeta();
+  if (lastMeta && lastMeta.sender === ((message.sender.split('.')[0]).charAt(0).toUpperCase() + (message.sender.split('.')[0]).slice(1)) && lastMeta.timestamp === message.timestamp) {
+
+    const lastMessageText = lastMeta.element.querySelector('.message-text');
+    lastMessageText.innerHTML += `<br>${message.text}`;
+    if (message.text.includes('@'+messageSender.replace("@providenceday.org",'')) == true || message.text.includes('@everyone')) {
+      lastMeta.element.classList.add('yello-bg');
+    }
+  } else {
+chatMessages.appendChild(newMessage);}
 chatMessages.scrollTop = chatMessages.scrollHeight
   }
 }
@@ -823,7 +848,7 @@ function log(message) {
  let timestamp = new Date().toLocaleString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true })
   let messageData = {
     sender: "Server",
-    text: message,
+    text: message.toLocaleString(),
     timestamp,
   }
   const messageRef = ref(realtimedb,`messages/${uid}`)
