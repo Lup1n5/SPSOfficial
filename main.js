@@ -240,7 +240,7 @@ const createChatMessageElement = (message) => {
   
   
 
-  if (Math.abs(Number(time2)-Number(time1)) <20) {
+  if (Math.abs(Number(time2)-Number(time1)) <1) {
 newMessage.innerHTML = `<div class="message ${message.text.includes('@'+messageSender.replace("@providenceday.org",'')) == true || message.text.includes('@everyone') ? 'yello-bg' : 'gray-bg'}">
   <div class="message-top"><div class="message-sender">${(message.sender.split('.')[0]).charAt(0).toUpperCase() + (message.sender.split('.')[0]).slice(1)}</div>
   <div class="message-timestamp">${message.timestamp}</div></div>
