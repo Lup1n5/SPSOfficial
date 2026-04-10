@@ -2,7 +2,7 @@ import { defineConfig } from 'vite'
 
 // Use GitHub Pages base so the built site works reliably in iOS PWA and when deployed to /SPSOfficial/
 export default defineConfig({
-  base: '/SPSOfficial/',
+  base: '/',
   build: {
     outDir: 'dist',
     rollupOptions: {
