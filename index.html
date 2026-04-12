@@ -2,122 +2,164 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="manifest" href="manifest.json">
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="mobile-web-app-title" content="SPS">
-
-    <!-- Favicons (canonical names) -->
-    <link rel="icon" type="image/png" sizes="32x32" href="./icons/favicon-32x32.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="./icons/favicon-16x16.png">
-    <link rel="shortcut icon" href="./icons/favicon.ico">
-
-    <!-- Apple touch icons (iOS) -->
-    <link rel="apple-touch-icon" href="https://raw.githubusercontent.com/Lup1n5/SPSOfficial/main/public/icons/apple-touch-icon.png">
-    <link rel="apple-touch-icon" sizes="180x180" href="https://raw.githubusercontent.com/Lup1n5/SPSOfficial/main/public/icons/apple-touch-icon-180x180.png">
-    <link rel="apple-touch-icon" sizes="167x167" href="https://raw.githubusercontent.com/Lup1n5/SPSOfficial/main/public/icons/apple-touch-icon-167x167.png">
-    <link rel="apple-touch-icon" sizes="152x152" href="https://raw.githubusercontent.com/Lup1n5/SPSOfficial/main/public/icons/apple-touch-icon-152x152.png">
-    <link rel="apple-touch-icon" sizes="120x120" href="https://raw.githubusercontent.com/Lup1n5/SPSOfficial/main/public/icons/apple-touch-icon-120x120.png">
-
-    <!-- Safari pinned tab (monochrome SVG) - add icons/safari-pinned-tab.svg and uncomment the next line if you add it -->
-    <!-- <link rel="mask-icon" href="./icons/safari-pinned-tab.svg" color="#5bbad5"> -->
-
-    <!-- Windows tile
-    <meta name="msapplication-TileColor" content="#000000">
-    <meta name="msapplication-TileImage" content="%Bicons/192.png"> -->
-
-    <meta name="theme-color" content="#FFFFFF">
-
-    <link rel="stylesheet" href="style.css">
-    <title>Stewflandic Permission System</title>
-</head> 
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#1f1f1f">
+    <meta name="description" content="SPS - A messaging application">
+    <title>SPS - Messaging</title>
+    <link rel="manifest" href="/manifest.json">
+    <link rel="apple-touch-icon" href="/icons/192.png">
+    <link rel="stylesheet" href="/styles/global.css">
+    <link rel="stylesheet" href="/styles/auth.css">
+    <link rel="stylesheet" href="/styles/messaging.css">
+    <style>
+        :root {
+            --primary: #7c3aed;
+            --secondary: #6d28d9;
+            --background: #0f0f0f;
+            --surface: #1f1f1f;
+            --surface-light: #2d2d2d;
+            --text-primary: #ffffff;
+            --text-secondary: #b0b0b0;
+            --border: #3d3d3d;
+            --success: #10b981;
+            --error: #ef4444;
+        }
+    </style>
+</head>
 <body>
-    <main>
-        
-        <div class="content-container">
-            <!-- Section for logged-out view -->
-            <section id="logged-out-view">
-                <div class="auth-page_container">
-                    <div class="form-container">
-                        <!-- Toggle buttons for sign in and sign up forms -->
-                        
-                        <!-- Sign in form -->
-                        <div id="signin-form" class="login-form-container">
-                            <div class="login-form">
-                                <h2>Login</h2>
-                                <div class="input-group">
-                                    <input type="email" id="signin-email-input" name="email" placeholder="Email" required>
-                                    <div id="email-error-message" class="error-msg"></div>
-                                </div>
-                                <div class="input-group">
-                                    <input type="password" id="signin-password-input" name="password" placeholder="Password" required>
-                                    <div id="password-error-message" class="error-msg"></div>
-                                </div>
-                                <div id="sign-in-btn" class="login-btn">Sign In</div>
-                               
-                                
-                            </div>
-                        </div>
-                        <!-- Sign up form -->
-                        
-                </div>
-            </section>
-
+    <div id="app"></div>
+    
+    <!-- Auth Screen -->
+    <div id="auth-screen" class="screen active">
+        <div class="auth-container">
+            <div class="auth-header">
+                <h1 class="sps-logo">SPS</h1>
+                <p class="auth-subtitle">Messaging Simplified</p>
+            </div>
             
-            <!-- Section for logged-in view -->
-            <section id="logged-in-view">
-                
-                <div class="chat-container">
-                    
-              
-                    <div class="chat-messages"></div>
-              
-                    <div class="chat-input-form">
-                      <input type="text" class="chat-input" required placeholder="Type here..." maxlength="200" title="" />
-                      <button class="button send-button">Send</button>
-                    </div>
-                    
-                  </div>
-                  <div class="top-section">
-                    <h2 class="greeting">You are logged in as <span id="user-email"></span><span id="hidden-box"></span>.<br>Use "/help" for info</h2>
-                    
-                    <button id="logout-button" class="logout-btn">Logout</button>
+            <div class="auth-tabs">
+                <button class="tab-btn active" data-tab="login">Login</button>
+                <button class="tab-btn" data-tab="signup">Sign Up</button>
+            </div>
+            
+            <!-- Login Form -->
+            <form id="login-form" class="auth-form active">
+                <div class="form-group">
+                    <label for="login-email">Email</label>
+                    <input type="email" id="login-email" placeholder="your@email.com" required>
                 </div>
-            </section>
+                <div class="form-group">
+                    <label for="login-password">Password</label>
+                    <input type="password" id="login-password" placeholder="••••••••" required>
+                </div>
+                <button type="submit" class="btn btn-primary">Login</button>
+                <p class="auth-error" id="login-error"></p>
+            </form>
+            
+            <!-- Signup Form -->
+            <form id="signup-form" class="auth-form">
+                <div class="form-group">
+                    <label for="signup-email">Email</label>
+                    <input type="email" id="signup-email" placeholder="your@email.com" required>
+                </div>
+                <div class="form-group">
+                    <label for="signup-username">Username</label>
+                    <input type="text" id="signup-username" placeholder="choose a username" required>
+                </div>
+                <div class="form-group">
+                    <label for="signup-password">Password</label>
+                    <input type="password" id="signup-password" placeholder="••••••••" required>
+                </div>
+                <div class="form-group">
+                    <label for="signup-password-confirm">Confirm Password</label>
+                    <input type="password" id="signup-password-confirm" placeholder="••••••••" required>
+                </div>
+                <button type="submit" class="btn btn-primary">Create Account</button>
+                <p class="auth-error" id="signup-error"></p>
+            </form>
         </div>
-        <div class="error-screen">
-            <h1>ERROR incompatible verson! please delete and re add to home screen!</h1>
+    </div>
+    
+    <!-- Main Messaging Screen -->
+    <div id="messaging-screen" class="screen">
+        <div class="app-container">
+            <!-- Sidebar -->
+            <aside class="sidebar">
+                <div class="sidebar-header">
+                    <h1 class="sps-logo-small">SPS</h1>
+                    <button id="settings-btn" class="icon-btn" title="Settings">⚙️</button>
+                </div>
+                
+                <div class="channels-section">
+                    <div class="channels-header">
+                        <h3>Channels</h3>
+                        <button id="add-channel-btn" class="icon-btn" title="Add Channel">+</button>
+                    </div>
+                    <ul id="channels-list" class="channels-list">
+                        <li class="channel-item active" data-channel="general">
+                            <span class="channel-icon">#</span>
+                            <span class="channel-name">general</span>
+                        </li>
+                        <li class="channel-item" data-channel="introductions">
+                            <span class="channel-icon">#</span>
+                            <span class="channel-name">introductions</span>
+                        </li>
+                    </ul>
+                </div>
+                
+                <div class="sidebar-footer">
+                    <div class="user-profile">
+                        <div class="user-avatar" id="user-avatar">U</div>
+                        <div class="user-info">
+                            <p class="user-name" id="user-name">Loading...</p>
+                            <p class="user-status">Online</p>
+                        </div>
+                    </div>
+                    <button id="logout-btn" class="icon-btn" title="Logout">🚪</button>
+                </div>
+            </aside>
+            
+            <!-- Main Content -->
+            <main class="main-content">
+                <!-- Channel Header -->
+                <div class="channel-header">
+                    <div>
+                        <h2 id="channel-title"># general</h2>
+                        <p id="channel-description" class="channel-description">Public channel for server-wide discussions</p>
+                    </div>
+                    <div class="channel-actions">
+                        <button class="icon-btn" title="Members">👥</button>
+                        <button class="icon-btn" title="Info">ℹ️</button>
+                    </div>
+                </div>
+                
+                <!-- Messages Container -->
+                <div class="messages-container" id="messages-container">
+                    <div class="empty-state">
+                        <p>No messages yet. Start the conversation!</p>
+                    </div>
+                </div>
+                
+                <!-- Message Input -->
+                <div class="message-input-area">
+                    <form id="message-form" class="message-form">
+                        <input 
+                            type="text" 
+                            id="message-input" 
+                            placeholder="Message #general" 
+                            autocomplete="off"
+                        >
+                        <button type="submit" class="send-btn" title="Send">➤</button>
+                    </form>
+                </div>
+            </main>
         </div>
-    </main>
-
-    <!-- Script to toggle between signin and signup forms -->
-    <!-- <script>
-        const signinToggleBtn = document.getElementById("signin-toggle-btn");
-        const signupToggleBtn = document.getElementById("signup-toggle-btn");
-        const signInFormView = document.getElementById("signin-form");
-        const signUpFormView = document.getElementById("signup-form");
-
-        signinToggleBtn.addEventListener('click', () => {
-            signInFormView.style.display = 'block';
-            signUpFormView.style.display = 'none';
-            signinToggleBtn.style.backgroundColor = 'blue';
-            signinToggleBtn.style.color = 'white';
-            signupToggleBtn.style.backgroundColor = 'lightgrey';
-            signupToggleBtn.style.color = 'black';
-        });
-
-        signupToggleBtn.addEventListener('click', () => {
-            signInFormView.style.display = 'none';
-            signUpFormView.style.display = 'block';
-            signinToggleBtn.style.backgroundColor = 'lightgrey';
-            signinToggleBtn.style.color = 'black';
-            signupToggleBtn.style.backgroundColor = 'blue';
-            signupToggleBtn.style.color = 'white';
-        });
-    </script> -->      
-
-    <!-- Import external script -->
-    <script type="module" src="main.js"></script>
+    </div>
+    
+    <!-- Modal Base -->
+    <div id="modal-backdrop" class="modal-backdrop"></div>
+    <div id="modal" class="modal"></div>
+    
+    <script type="module" src="/src/main.js"></script>
 </body>
 </html>

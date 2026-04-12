@@ -1,23 +1,18 @@
 {
-  "name": "sps",
-  "private": true,
-  "version": "0.0.0",
+  "name": "sps-messaging",
+  "version": "1.0.0",
+  "description": "SPS - A Discord-inspired messaging application with Firebase backend",
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "prebuild": "npm run generate-icons",
     "build": "vite build",
     "preview": "vite preview",
-    "generate-icons": "node tools/generate-icons-sharp.cjs"
-  },
-  "devDependencies": {
-    "jimp": "^1.6.0",
-    "png-to-ico": "^3.0.1",
-    "sharp": "^0.34.5",
-    "vite": "^6.0.5",
-    "web-push": "^3.6.7"
+    "deploy": "npm run build && git add dist -f && git commit -m 'Deploy' && git subtree push --prefix dist origin gh-pages"
   },
   "dependencies": {
-    "firebase": "^11.2.0"
+    "firebase": "^10.7.1"
+  },
+  "devDependencies": {
+    "vite": "^5.0.7"
   }
 }
