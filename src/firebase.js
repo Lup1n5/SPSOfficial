@@ -13,11 +13,6 @@ let auth = null;
 let db = null;
 let firestore = null;
 
-const DEFAULT_CHANNELS = [
-    { id: 'general', name: 'general', description: 'Public channel for server-wide discussions' },
-    { id: 'introductions', name: 'introductions', description: 'Introduce yourself to the community' }
-];
-
 const USERNAME_MIN_LENGTH = 3;
 const USERNAME_MAX_LENGTH = 30;
 
@@ -251,7 +246,8 @@ export const getChannels = async () => {
         const channelsSnapshot = await getDocs(channelsCollectionRef);
 
         if (channelsSnapshot.empty) {
-            return DEFAULT_CHANNELS;
+            console.warn('No channels found in Firestore. Please create channels in Firebase Console.');
+            return [];
         }
 
         const channels = channelsSnapshot.docs.map((channelDoc) => {
@@ -266,8 +262,9 @@ export const getChannels = async () => {
 
         return channels.sort((a, b) => a.name.localeCompare(b.name));
     } catch (error) {
-        console.error('Error fetching channels:', error);
-        return DEFAULT_CHANNELS;
+        console.error('Error fetching channels from Firestore:', error);
+        console.error('Make sure Firestore is initialized and has a "channels" collection.');
+        return [];
     }
 };
 

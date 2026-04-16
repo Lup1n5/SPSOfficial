@@ -1,5 +1,5 @@
 {
-  "name": "sps-messaging",
+  "name": "sps",
   "version": "1.0.0",
   "description": "SPS - A Discord-inspired messaging application with Firebase backend",
   "type": "module",
