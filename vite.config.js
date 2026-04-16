@@ -8,7 +8,6 @@ export default defineConfig({
     rollupOptions: {
       input: {
         main: './index.html',
-        spin: './SPiN.html'
       }
     },
     copyPublicDir: true

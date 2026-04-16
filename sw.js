@@ -2,8 +2,9 @@
 // Provides offline support, caching, and push notifications for PWA
 
 const CACHE_PREFIX = 'sps-cache';
-const CACHE_VERSION = 'v1';
+const CACHE_VERSION = 'v2';
 const CACHE_NAME = `${CACHE_PREFIX}-${CACHE_VERSION}`;
+const IS_DEV_HOST = ['localhost', '127.0.0.1', '[::1]'].includes(self.location.hostname);
 
 // Files to cache on install
 const STATIC_ASSETS = [
@@ -18,6 +19,12 @@ const STATIC_ASSETS = [
 // Install event - cache static assets
 self.addEventListener('install', (event) => {
   console.log('[Service Worker] Installing...');
+
+  if (IS_DEV_HOST) {
+    // Never cache in local development; HMR and live reload should always hit network.
+    self.skipWaiting();
+    return;
+  }
   
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
@@ -36,6 +43,20 @@ self.addEventListener('install', (event) => {
 // Activate event - clean up old caches
 self.addEventListener('activate', (event) => {
   console.log('[Service Worker] Activating...');
+
+  if (IS_DEV_HOST) {
+    event.waitUntil(
+      caches.keys().then((cacheNames) => {
+        return Promise.all(
+          cacheNames
+            .filter((cacheName) => cacheName.startsWith(CACHE_PREFIX))
+            .map((cacheName) => caches.delete(cacheName))
+        );
+      }).then(() => self.registration.unregister())
+    );
+
+    return;
+  }
   
   event.waitUntil(
     caches.keys().then((cacheNames) => {
@@ -50,18 +71,45 @@ self.addEventListener('activate', (event) => {
     })
   );
   
-  self.claim();
+  self.clients.claim();
 });
 
 // Fetch event - serve from cache, fallback to network
 self.addEventListener('fetch', (event) => {
+  if (IS_DEV_HOST) {
+    return;
+  }
+
   // Skip non-GET requests
   if (event.request.method !== 'GET') {
     return;
   }
 
+  const requestUrl = new URL(event.request.url);
+
+  // Keep app shell fresh; fallback to cached index when offline.
+  if (event.request.mode === 'navigate') {
+    event.respondWith(
+      fetch(event.request)
+        .then((response) => {
+          const responseToCache = response.clone();
+          caches.open(CACHE_NAME).then((cache) => {
+            cache.put('/index.html', responseToCache);
+          });
+          return response;
+        })
+        .catch(() => caches.match('/index.html'))
+    );
+    return;
+  }
+
   // Skip chrome extensions and other non-http protocols
   if (!event.request.url.startsWith('http')) {
+    return;
+  }
+
+  // Do not cache third-party requests.
+  if (requestUrl.origin !== self.location.origin) {
     return;
   }
 
